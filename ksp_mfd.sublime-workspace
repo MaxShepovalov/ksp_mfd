@@ -1,0 +1,631 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"Sys",
+				"SYS_screen_size\tstatement"
+			],
+			[
+				"SY",
+				"SYS_screen_size\tstatement"
+			],
+			[
+				"al",
+				"alpha\tparam"
+			],
+			[
+				"cou",
+				"counterKeys\tstatement"
+			],
+			[
+				"job",
+				"jobData"
+			],
+			[
+				"jo",
+				"jobData\tparam"
+			],
+			[
+				"v",
+				"version\tstatement"
+			],
+			[
+				"W",
+				"World"
+			],
+			[
+				"riht",
+				"rights"
+			],
+			[
+				"right",
+				"rights"
+			],
+			[
+				"Un",
+				"United"
+			],
+			[
+				"Ger",
+				"George"
+			],
+			[
+				"Cons",
+				"Constitutional"
+			],
+			[
+				"Con",
+				"Convention"
+			],
+			[
+				"In",
+				"Independence"
+			],
+			[
+				"Amei",
+				"American"
+			],
+			[
+				"econom",
+				"economic"
+			],
+			[
+				"fere",
+				"freedom"
+			],
+			[
+				"cit",
+				"citizens"
+			],
+			[
+				"Re",
+				"Representatives"
+			],
+			[
+				"dec",
+				"declared"
+			],
+			[
+				"Ro",
+				"Roberts"
+			],
+			[
+				"Sta",
+				"States"
+			],
+			[
+				"Secrr",
+				"Secretary"
+			],
+			[
+				"S",
+				"States"
+			],
+			[
+				"U",
+				"United"
+			],
+			[
+				"pre",
+				"President"
+			],
+			[
+				"state",
+				"states"
+			],
+			[
+				"Am",
+				"amendments"
+			],
+			[
+				"c",
+				"Constitution"
+			],
+			[
+				"as",
+				"asking\tstatement"
+			],
+			[
+				"q",
+				"questions\tstatement"
+			],
+			[
+				"D",
+				"DELAY"
+			],
+			[
+				"ard",
+				"arduinoReset\tfunction"
+			],
+			[
+				"DEF",
+				"DEFSTEP\tstatement"
+			],
+			[
+				"cur",
+				"currentValue\tstatement"
+			],
+			[
+				"curr",
+				"currentTime\tstatement"
+			],
+			[
+				"MAX",
+				"MAXDELAY\tstatement"
+			],
+			[
+				"curre",
+				"currentValue\tstatement"
+			],
+			[
+				"new",
+				"newValue\tstatement"
+			],
+			[
+				"va",
+				"validateByte\tfunction"
+			],
+			[
+				"sign",
+				"signal_time"
+			],
+			[
+				"Use",
+				"USER_AGENT\tstatement"
+			],
+			[
+				"sc",
+				"scpcmd"
+			],
+			[
+				"mi",
+				"missed\tstatement"
+			],
+			[
+				"local",
+				"localSet\tstatement"
+			],
+			[
+				"loca",
+				"localSet\tstatement"
+			],
+			[
+				"f",
+				"format\tfunction"
+			],
+			[
+				"w",
+				"waitnoecho\tfunction"
+			],
+			[
+				"s",
+				"spawn\tclass"
+			],
+			[
+				"has",
+				"hasIgnore\tfunction"
+			],
+			[
+				"is",
+				"isdir\tfunction"
+			],
+			[
+				"ac",
+				"active\tstatement"
+			],
+			[
+				"str",
+				"strength\tstatement"
+			],
+			[
+				"st",
+				"strength\tstatement"
+			],
+			[
+				"mode",
+				"models"
+			],
+			[
+				"for",
+				"format"
+			],
+			[
+				"pr",
+				"printFullPath"
+			],
+			[
+				"del",
+				"delhelp"
+			],
+			[
+				"fileC",
+				"fileCounter"
+			],
+			[
+				"full",
+				"fullPathFrom"
+			],
+			[
+				"rea",
+				"realTargetPath"
+			],
+			[
+				"dr",
+				"driveLetterOrPath"
+			],
+			[
+				"sync",
+				"syncToDrive"
+			],
+			[
+				"com",
+				"command"
+			],
+			[
+				"fu",
+				"fullPathTo"
+			],
+			[
+				"sub",
+				"subprocess"
+			],
+			[
+				"fol",
+				"folderTRG"
+			],
+			[
+				"folder",
+				"folderSRC"
+			],
+			[
+				"drive",
+				"drivePath"
+			],
+			[
+				"real",
+				"realPath"
+			],
+			[
+				"dow",
+				"download_all_v2"
+			],
+			[
+				"wind",
+				"window_name"
+			],
+			[
+				"ST",
+				"STORY_WEB"
+			],
+			[
+				"cu",
+				"currLink"
+			],
+			[
+				"html",
+				"htmlParser"
+			],
+			[
+				"HT",
+				"HTMLParser"
+			],
+			[
+				"fin",
+				"findall"
+			],
+			[
+				"url",
+				"urllib2"
+			],
+			[
+				"do",
+				"download_all"
+			],
+			[
+				"de",
+				"debug"
+			],
+			[
+				"d",
+				"debug"
+			],
+			[
+				"log",
+				"logprint"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "test.py",
+			"settings":
+			{
+				"buffer_size": 1589,
+				"encoding": "UTF-8",
+				"line_ending": "Windows",
+				"name": "import matplotlib.pyplot as plt"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/Arduino/KSP_MFD"
+	],
+	"file_history":
+	[
+		"/C/Users/User/Downloads/tmp.csv",
+		"/C/Arduino/lovense_clone/FetcherWeb/WorkerClient/worker.py",
+		"/C/Users/User/AppData/Roaming/.minecraft/saves/Survive_1_16_2 (1)/computercraft/computer/0/skyBridge/deals.data",
+		"/C/Arduino/lovense_clone/Fetcher/photos/root.log",
+		"/C/Users/User/Downloads/a_kai_haru/a_kai_haru-1250371274288881664(20200415_033157)-1320444487353704449(20201025_121753)-media.log",
+		"/C/Users/User/Downloads/a_kai_haru/a_kai_haru-1250371274288881664(20200415_033157)-1320444487353704449(20201025_121753)-media.csv",
+		"/C/Arduino/lovense_clone/FetcherWeb/PythonClient/test.py",
+		"/C/Arduino/lovense_clone/Fetcher/installFromH.bat",
+		"/C/Arduino/lovense_clone/Fetcher/installToH.bat",
+		"/C/Arduino/lovense_clone/Fetcher/printRealTimefullauto.py",
+		"/F/morefiles/fetching/arielrebel/D4_AkbnW0AAZAoL.xmp",
+		"/C/Arduino/lovense_clone/Sync/findEmptyFolders.py",
+		"/C/Arduino/lovense_clone/FetcherWeb/ServerQueue/jobbiz.py",
+		"/C/Arduino/lovense_clone/Fetcher/installToH.txt",
+		"/C/Arduino/lovense_clone/Fetcher/test.bat",
+		"/C/Users/User/AppData/Roaming/.minecraft/saves/TestBed 1_15_2/data/raids.dat",
+		"/C/Users/User/AppData/Roaming/.minecraft/saves/Mod_1_15_2/computercraft/ids.json",
+		"/C/Arduino/lovense_clone/Sync/photosync.py",
+		"/C/Arduino/lovense_clone/Fetcher/history/accs.txt",
+		"/C/Arduino/lovense_clone/VibroProject/scrapper.py",
+		"/C/Arduino/lovense_clone/Fetcher/download_all.py"
+	],
+	"find":
+	{
+		"height": 29.0
+	},
+	"find_in_files":
+	{
+		"height": 107.0,
+		"where_history":
+		[
+			"<current file>",
+			"current_url",
+			"<current file>"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"jobStatusEnum",
+			"of the P",
+			"responseIsCorrect",
+			"'r'",
+			"\"t\"",
+			"'t'",
+			"\"a\"",
+			"'a'",
+			"qta",
+			"fih",
+			"fi",
+			"fou",
+			"delay",
+			"Common::loadBacklogJobs start",
+			"SCP_TIMEOUT",
+			"JobQueue",
+			"make",
+			"makeGET",
+			"-twit",
+			"xcopy",
+			"/",
+			"getCurrentUrl()",
+			"load_models",
+			"download_all",
+			"URLLIB2_USER",
+			"process",
+			"story",
+			"selenium",
+			"'download_all.py'",
+			"-debug",
+			"mp4"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"isCorrect",
+			"'response'",
+			"\"type\"",
+			"'type'",
+			"\"answers\"",
+			"'answers'",
+			"questionItem",
+			"robocopy",
+			"\\",
+			"current_url",
+			"CORE"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "test.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1589,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								171,
+								171
+							]
+						],
+						"settings":
+						{
+							"auto_name": "import matplotlib.pyplot as plt",
+							"show_definitions": false,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 60.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 29.0
+	},
+	"input":
+	{
+		"height": 41.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 206.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.unsaved_changes":
+	{
+		"height": 126.0
+	},
+	"pinned_build_system": "",
+	"project": "ksp_mfd.sublime-project",
+	"replace":
+	{
+		"height": 54.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
