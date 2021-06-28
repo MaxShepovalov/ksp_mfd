@@ -8,6 +8,7 @@ def connect(url):
 	print("connecting")
 	c = krpc.connect(address=url)
 	print("connected")
+	return c
 
 def ls(a):
 	for method in dir(a):

@@ -21,7 +21,7 @@ def getEllipse(A, P, e=0, alpha=1.0, edgeColor=SYS_ui_clr, faceColor=None, patch
 	x = (A-P)/2.
 	a = A+P
 	b = a*pow(1-e*e, 0.5)
-	print("for A={} P={} e={} : x={} a={} b={}".format(A,P,e,x,a,b))
+	#print("for A={} P={} e={} : x={} a={} b={}".format(A,P,e,x,a,b))
 	if patch == None:
 		return Ellipse(
 			xy=(x, 0),
@@ -71,10 +71,13 @@ def drawSpaceView(orbitArray):
 
 	# ax.text(s=orbitParams, x=-0.95*SYS_screen_size/2, y=-0.95*SYS_screen_size/2, color=SYS_ui_clr, fontfamily='monospace')
 	plt.draw()
-	return orbit
+	return orbit, ax
 
-def updateScreen(orbitArray, orbit):
+def updateScreen(orbitArray, orbit, axes):
 	Ap, Pe, ec, Gnd, Atm = orbitArray
+	xmax = max(Ap, Atm)*1.1
+	axes.set_xlim(-xmax, xmax)
+	axes.set_ylim(-xmax, xmax)
 	plt.draw()
 	plt.pause(0.1)
 	getEllipse(A=Ap, P=Pe, e=ec, patch=orbit)
@@ -84,24 +87,24 @@ def parseOrbitData(orbitData):
 	Pe = orbitData.periapsis/1000.
 	ec = orbitData.eccentricity
 	Gnd = orbitData.body.equatorial_radius/1000.
-	Atm = orbitData.body.atmosphere_depth/1000.
+	Atm = Gnd+orbitData.body.atmosphere_depth/1000.
 	return (Ap, Pe, ec, Gnd, Atm)
 
 if __name__ == "__main__":
 	run = True
-	kspConnect.connect(kspConnect.defurl)
+	c = kspConnect.connect(kspConnect.defurl)
 	try:
 		orbitData = kspConnect.getOrbit()
 		if orbitData:
-			orbitPath = drawSpaceView(parseOrbitData(orbitData))
+			orbitPath, ax = drawSpaceView(parseOrbitData(orbitData))
 			while kspConnect.isFlight():
 				try:
-					updateScreen(parseOrbitData(orbitData), orbit=orbitPath)
+					updateScreen(parseOrbitData(orbitData), orbit=orbitPath, axes=ax)
 				except KeyboardInterrupt:
 					break
 		else:
 			print("not in flight")
 	except Exception as e:
 		print(e)
-	kspConnect.drop()
+	kspConnect.drop(c)
 	print("done")
