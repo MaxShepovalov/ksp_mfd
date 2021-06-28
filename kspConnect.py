@@ -1,10 +1,13 @@
 import krpc
 
-url = "192.168.2.3"
+defurl = "192.168.2.3"
+c = None
 
-print("connecting")
-c = krpc.connect(address=url)
-print("connected")
+def connect(url):
+	global c
+	print("connecting")
+	c = krpc.connect(address=url)
+	print("connected")
 
 def ls(a):
 	for method in dir(a):
@@ -12,7 +15,7 @@ def ls(a):
 			print(method)
 
 def res():
-	if (c.krpc.current_game_scene == c.krpc.GameScene.flight):
+	if isFlight():
 		av = c.space_center.active_vessel
 		print("Vessel: {}".format(av.name))
 		for name in av.resources.names:
@@ -26,7 +29,7 @@ def drop(conn):
 	exit()
 
 def parts():
-	if (c.krpc.current_game_scene == c.krpc.GameScene.flight):
+	if isFlight():
 		av = c.space_center.active_vessel
 		root = av.parts.root
 		stack = [(root, 1)]
@@ -39,7 +42,7 @@ def parts():
 		print("not in flight")
 
 def hint():
-	if (c.krpc.current_game_scene == c.krpc.GameScene.flight):
+	if isFlight():
 		av = c.space_center.active_vessel
 		prevhl = None
 		while True:
@@ -50,3 +53,17 @@ def hint():
 						print(" m> {} {}".format(module.name, module.actions))
 	else:
 		print("not in flight")
+
+def getOrbit():
+	if isFlight():
+		av = c.space_center.active_vessel
+		return av.orbit
+	else:
+		print("not in flight")
+
+def isFlight():
+	return c.krpc.current_game_scene == c.krpc.GameScene.flight
+
+
+if __name__ == "__main__":
+	connect(defurl)
