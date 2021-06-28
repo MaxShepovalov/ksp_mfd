@@ -18,7 +18,7 @@ SYS_ui_clr = 'white'
 # orbitParams = 'Ap {}\nPe {}\nEc {}'.format(Ap,Pe,ec)
 
 def getEllipse(A, P, e=0, alpha=1.0, edgeColor=SYS_ui_clr, faceColor=None, patch=None):
-	x = (A-P)/2
+	x = (A-P)/2.
 	a = A+P
 	b = a*pow(1-e*e, 0.5)
 	print("for A={} P={} e={} : x={} a={} b={}".format(A,P,e,x,a,b))
@@ -69,7 +69,7 @@ def drawSpaceView(orbitArray):
 	fig.set_edgecolor('White')
 	fig.set_facecolor(SYS_background_clr)
 
-	ax.text(s=orbitParams, x=-0.95*SYS_screen_size/2, y=-0.95*SYS_screen_size/2, color=SYS_ui_clr, fontfamily='monospace')
+	# ax.text(s=orbitParams, x=-0.95*SYS_screen_size/2, y=-0.95*SYS_screen_size/2, color=SYS_ui_clr, fontfamily='monospace')
 	plt.draw()
 	return orbit
 
@@ -80,11 +80,11 @@ def updateScreen(orbitArray, orbit):
 	getEllipse(A=Ap, P=Pe, e=ec, patch=orbit)
 
 def parseOrbitData(orbitData):
-	Ap = orbitData.apoapsis/1000
-	Pe = orbitData.periapsis/1000
+	Ap = orbitData.apoapsis/1000.
+	Pe = orbitData.periapsis/1000.
 	ec = orbitData.eccentricity
-	Gnd = orbitData.body.equatorial_radius/1000
-	Atm = orbitData.body.atmosphere_depth/1000
+	Gnd = orbitData.body.equatorial_radius/1000.
+	Atm = orbitData.body.atmosphere_depth/1000.
 	return (Ap, Pe, ec, Gnd, Atm)
 
 if __name__ == "__main__":
