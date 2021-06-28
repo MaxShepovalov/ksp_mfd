@@ -90,14 +90,18 @@ def parseOrbitData(orbitData):
 if __name__ == "__main__":
 	run = True
 	kspConnect.connect(kspConnect.defurl)
-	orbitData = kspConnect.getOrbit()
-	if orbitData:
-		orbitPath = drawSpaceView(parseOrbitData(orbitData))
-		while kspConnect.isFlight():
-			try:
-				updateScreen(parseOrbitData(orbitData), orbit=orbitPath)
-			except KeyboardInterrupt:
-				break
-	else:
-		print("not in flight")
+	try:
+		orbitData = kspConnect.getOrbit()
+		if orbitData:
+			orbitPath = drawSpaceView(parseOrbitData(orbitData))
+			while kspConnect.isFlight():
+				try:
+					updateScreen(parseOrbitData(orbitData), orbit=orbitPath)
+				except KeyboardInterrupt:
+					break
+		else:
+			print("not in flight")
+	except Exception as e:
+		print(e)
+	kspConnect.drop()
 	print("done")
