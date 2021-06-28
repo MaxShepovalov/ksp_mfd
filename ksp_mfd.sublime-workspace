@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"p",
+				"prev\tstatement"
+			],
+			[
 				"Sys",
 				"SYS_screen_size\tstatement"
 			],
@@ -348,6 +352,24 @@
 				"line_ending": "Windows",
 				"name": "import matplotlib.pyplot as plt"
 			}
+		},
+		{
+			"file": "uiTest.py",
+			"settings":
+			{
+				"buffer_size": 2326,
+				"encoding": "UTF-8",
+				"line_ending": "Windows",
+				"name": "#ui speed test"
+			}
+		},
+		{
+			"file": "connect.py",
+			"settings":
+			{
+				"buffer_size": 1276,
+				"line_ending": "Windows"
+			}
 		}
 	],
 	"build_system": "",
@@ -502,7 +524,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -518,21 +540,82 @@
 						"selection":
 						[
 							[
-								171,
-								171
+								0,
+								1589
 							]
 						],
 						"settings":
 						{
 							"auto_name": "import matplotlib.pyplot as plt",
 							"show_definitions": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 960.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "uiTest.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2326,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2231,
+								2231
+							]
+						],
+						"settings":
+						{
+							"auto_name": "#ui speed test",
+							"show_definitions": false,
 							"syntax": "Packages/Python/Python.sublime-syntax"
 						},
 						"translation.x": 0.0,
-						"translation.y": 60.0,
+						"translation.y": 1146.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "connect.py",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 1276,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								83,
+								83
+							]
+						],
+						"settings":
+						{
+							"show_definitions": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
 					"type": "text"
 				}
 			]
