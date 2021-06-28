@@ -1,0 +1,24 @@
+Device:
+- IP connect screen
+- orbit plotting
+- vessel fuel info
+- vessel part interactions
+- target selection
+- last-mile-docking (dock selection, alignment display)
+- surface scanner?
+- maneuver planner?
+
+OrbitPlotting:
+- handle vessel change
+	update planet data
+	update orbit data
+- handle scene change
+	wait for "flight" scene
+- speedup communication
+- 3d?
+	plot vs equator and 0 longitude
+	plot vs target orbit
+- handle target orbit if in the same SOI
+
+VesselPartInteractions:
+- vessel projection

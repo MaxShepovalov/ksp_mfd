@@ -4,6 +4,26 @@
 		"selected_items":
 		[
 			[
+				"or",
+				"orbitPath\tstatement"
+			],
+			[
+				"orb",
+				"orbitData\tstatement"
+			],
+			[
+				"def",
+				"defurl\tstatement"
+			],
+			[
+				"__",
+				"__name__\tinstance"
+			],
+			[
+				"get",
+				"getEllipse\tfunction"
+			],
+			[
 				"p",
 				"prev\tstatement"
 			],
@@ -344,13 +364,22 @@
 	"buffers":
 	[
 		{
-			"file": "test.py",
+			"file": "APPorbitView.py",
 			"settings":
 			{
-				"buffer_size": 1589,
+				"buffer_size": 2875,
 				"encoding": "UTF-8",
 				"line_ending": "Windows",
 				"name": "import matplotlib.pyplot as plt"
+			}
+		},
+		{
+			"file": "idea.txt",
+			"settings":
+			{
+				"buffer_size": 500,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
 			}
 		},
 		{
@@ -364,10 +393,11 @@
 			}
 		},
 		{
-			"file": "connect.py",
+			"file": "kspConnect.py",
 			"settings":
 			{
-				"buffer_size": 1276,
+				"buffer_size": 1439,
+				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
 		}
@@ -465,6 +495,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"b",
 			"jobStatusEnum",
 			"of the P",
 			"responseIsCorrect",
@@ -529,19 +560,19 @@
 			[
 				{
 					"buffer": 0,
-					"file": "test.py",
+					"file": "APPorbitView.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1589,
+						"buffer_size": 2875,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								1589
+								178,
+								178
 							]
 						],
 						"settings":
@@ -552,7 +583,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 960.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
@@ -560,6 +591,35 @@
 				},
 				{
 					"buffer": 1,
+					"file": "idea.txt",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 500,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								63,
+								63
+							]
+						],
+						"settings":
+						{
+							"show_definitions": true,
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
 					"file": "uiTest.py",
 					"semi_transient": false,
 					"settings":
@@ -571,8 +631,8 @@
 						"selection":
 						[
 							[
-								2231,
-								2231
+								310,
+								310
 							]
 						],
 						"settings":
@@ -582,27 +642,27 @@
 							"syntax": "Packages/Python/Python.sublime-syntax"
 						},
 						"translation.x": 0.0,
-						"translation.y": 1146.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "connect.py",
-					"semi_transient": true,
+					"buffer": 3,
+					"file": "kspConnect.py",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1276,
+						"buffer_size": 1439,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								83,
-								83
+								155,
+								155
 							]
 						],
 						"settings":
