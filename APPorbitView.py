@@ -8,14 +8,14 @@ SYS_background_clr = 'black'
 SYS_ui_clr = 'white'
 
 #Kerbin
-Gnd = 30 #km
-Atm = 70+Gnd #km
+# Gnd = 30 #km
+# Atm = 70+Gnd #km
 
-Ap = 60+Gnd #km
-Pe = 31+Gnd #km
-ec = 0.7
+# Ap = 60+Gnd #km
+# Pe = 31+Gnd #km
+# ec = 0.7
 
-orbitParams = 'Ap {}\nPe {}\nEc {}'.format(Ap,Pe,ec)
+# orbitParams = 'Ap {}\nPe {}\nEc {}'.format(Ap,Pe,ec)
 
 def getEllipse(A, P, e=0, alpha=1.0, edgeColor=SYS_ui_clr, faceColor=None, patch=None):
 	x = (A-P)/2
@@ -38,7 +38,8 @@ def getEllipse(A, P, e=0, alpha=1.0, edgeColor=SYS_ui_clr, faceColor=None, patch
 		patch.height = a
 		return patch
 
-def drawSpaceView(Ap, Pe, ec, Gnd, Atm):
+def drawSpaceView(orbitArray):
+	Ap, Pe, ec, Gnd, Atm = orbitArray
 	ells = []
 	#orbit
 	orbit = getEllipse(A=Ap, P=Pe, e=ec)
@@ -72,10 +73,11 @@ def drawSpaceView(Ap, Pe, ec, Gnd, Atm):
 	plt.draw()
 	return orbit
 
-def updateScreen(Ap, Pe, ec, orbit):
+def updateScreen(orbitArray, orbit):
+	Ap, Pe, ec, Gnd, Atm = orbitArray
 	plt.draw()
 	plt.pause(0.1)
-	getEllipse(A=Ap+10*i, P=Pe, e=ec, patch=orbit)
+	getEllipse(A=Ap, P=Pe, e=ec, patch=orbit)
 
 def parseOrbitData(orbitData):
 	Ap = orbitData.apoapsis/1000
@@ -83,7 +85,7 @@ def parseOrbitData(orbitData):
 	ec = orbitData.eccentricity
 	Gnd = orbitData.body.equatorial_radius/1000
 	Atm = orbitData.body.atmosphere_depth/1000
-	return Ap, Pe, ec, Gnd, Atm
+	return (Ap, Pe, ec, Gnd, Atm)
 
 if __name__ == "__main__":
 	run = True
