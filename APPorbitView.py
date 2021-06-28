@@ -88,6 +88,7 @@ def parseOrbitData(orbitData):
 	ec = orbitData.eccentricity
 	Gnd = orbitData.body.equatorial_radius/1000.
 	Atm = Gnd+orbitData.body.atmosphere_depth/1000.
+	print("A={} P={} e={}".format((Ap, Pe, ec)))
 	return (Ap, Pe, ec, Gnd, Atm)
 
 if __name__ == "__main__":
