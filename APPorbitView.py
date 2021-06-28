@@ -21,7 +21,7 @@ def getEllipse(A, P, e=0, alpha=1.0, edgeColor=SYS_ui_clr, faceColor=None, patch
 	x = (A-P)/2.
 	a = A+P
 	b = a*pow(1-e*e, 0.5)
-	#print("for A={} P={} e={} : x={} a={} b={}".format(A,P,e,x,a,b))
+	print("for A={} P={} e={} : x={} a={} b={}".format(A,P,e,x,a,b))
 	if patch == None:
 		return Ellipse(
 			xy=(x, 0),
@@ -35,7 +35,7 @@ def getEllipse(A, P, e=0, alpha=1.0, edgeColor=SYS_ui_clr, faceColor=None, patch
 	else:
 		patch.center = (x,0)
 		patch.width = a
-		patch.height = a
+		patch.height = b
 		return patch
 
 def drawSpaceView(orbitArray):
@@ -88,7 +88,7 @@ def parseOrbitData(orbitData):
 	ec = orbitData.eccentricity
 	Gnd = orbitData.body.equatorial_radius/1000.
 	Atm = Gnd+orbitData.body.atmosphere_depth/1000.
-	print("A={} P={} e={}".format((Ap, Pe, ec)))
+	# print("A={} P={} e={}".format(Ap, Pe, ec))
 	return (Ap, Pe, ec, Gnd, Atm)
 
 if __name__ == "__main__":
