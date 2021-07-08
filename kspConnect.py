@@ -1,6 +1,6 @@
 import krpc
 
-defurl = "192.168.2.3"
+default = "192.168.2.3"
 c = None
 
 def connect(url):
