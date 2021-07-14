@@ -2,7 +2,7 @@ import pygame
 
 def main():
     pygame.init()
-    DISPLAY = pygame.display.set_mode((1000,500),0,32)
+    DISPLAY = pygame.display.set_mode((500,200),0,32)
     WHITE = (255,255,255)
     blue = (0,0,255)
     DISPLAY.fill(WHITE)
@@ -16,8 +16,10 @@ def main():
         for event in pygame.event.get():
             strpos = "--"
             if "pos" in dir(event):
-                strpos = event.pos
-            print("{} @ {}".format(pygame.event.event_name(event.type), strpos))
+                strpos = strpos.replace('--','')+' pos='+str(event.pos)
+            if "x" in dir(event) and "y" in dir(event):
+                strpos = strpos.replace('--','')+" x={};y={}".format(event.x, event.y)
+            print("{} @{}".format(pygame.event.event_name(event.type), strpos))
             if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEMOTION:
                 pos = event.pos
             pygame.draw.rect(DISPLAY, blue, (pos[0]-25,pos[1], 50, 250))
