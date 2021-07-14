@@ -1,0 +1,6 @@
+# install opengl:
+# sudo apt-get install python-opengl
+# pip3 install pyopengl pyopengl-accelerate
+
+# install KRPC client
+# pip3 install krpc
