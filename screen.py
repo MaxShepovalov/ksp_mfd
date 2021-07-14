@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 
 from OpenGL.GL import *
-from OpenGL.GLU import *
+import OpenGL.GLU as glu
 
 import math
 
@@ -12,13 +12,13 @@ scree = pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
 
 glEnable(GL_DEPTH_TEST)
 
-sphere = gluNewQuadric() #Create new sphere
+sphere = glu.gluNewQuadric() #Create new sphere
 
 glMatrixMode(GL_PROJECTION)
-gluPerspective(45, (display[0]/display[1]), 0.1, 50.0)
+glu.gluPerspective(45, (display[0]/display[1]), 0.1, 50.0)
 
 glMatrixMode(GL_MODELVIEW)
-gluLookAt(0, -8, 0, 0, 0, 0, 0, 0, 1)
+glu.gluLookAt(0, -8, 0, 0, 0, 0, 0, 0, 1)
 viewMatrix = glGetFloatv(GL_MODELVIEW_MATRIX)
 glLoadIdentity()
 
@@ -64,7 +64,7 @@ while run:
 
     glTranslatef(-1.5, 0, 0) #Move to the place
     glColor4f(0.5, 0.2, 0.2, 1) #Put color
-    gluSphere(sphere, 1.0, 32, 16) #Draw sphere
+    glu.gluSphere(sphere, 1.0, 32, 16) #Draw sphere
 
     glPopMatrix()
 
