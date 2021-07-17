@@ -25,7 +25,7 @@ inputArgs = []+sys.argv
 activeModule = "start"
 fullscreen = False
 if "fullscreen" in inputArgs:
-	inputArgs.pop("fullscreen")
+	inputArgs.remove("fullscreen")
 	fullscreen = True
 
 #start screen
