@@ -16,7 +16,10 @@ def initModule(cache):
 			"button_color": (0,0,0),
 			"text_color": (255,255,255),
 			"font": kspButtons.DEFAULT_FONT,
-			"size": 30
+			"size": 20,
+			# 'fixedWidth': 790,
+			'alignV': 'bottom',
+			'align': 'right'
 		}
 	}
 	kspButtons.makeButtons(text, [[MODULE_NAME+" screen\nshutdown in about 2 seconds"]], 5, 5, 790, 470, clickable=False, border = 5, states=states)
@@ -45,6 +48,7 @@ def run(screen, moduleState, cache):
 		if moduleState != "run":
 			break
 	frames -= 1
+	text[0].value += "\n{}".format(frames)
 	kspButtons.drawButtons(screen, text)
 	if frames <= 0:
 		cache['appState'] = "exit"

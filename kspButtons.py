@@ -9,14 +9,18 @@ idleState = {
 	"text_color": (0,0,0),
 	"font": DEFAULT_FONT,
 	"align": "center",
+	"alightV": "center",
+	'fixedWidth': False,
 	"size": 60
 }
 pressedState = {
-	"button_color": (150,255,150),
-	"text_color": (0,0,0),
-	"font": DEFAULT_FONT,
-	"align": "center",
-	"size": 60
+	"button_color": (150,255,150), # r b g
+	"text_color": (0,0,0), # r g b
+	"font": DEFAULT_FONT, # filename
+	"align": "center", # center, left, or right
+	"alignV": "center", # center, top, or bottom
+	'fixedWidth': False, # False, None, or int (pixel)
+	"size": 60 # int
 }
 
 defaultStates = {"idle":idleState, "pressed":pressedState}
@@ -93,10 +97,13 @@ def makeButtons(buttonsarr, buttonValuesTable, xPanel, yPanel, xWidth, yHeight, 
 				states = states)
 			)
 
-def renderText(screen, text, cx, cy, state):
+def renderText(screen, text, buttonRect, state):
 	textLines = []
 	totalHeight = 0
 	totalWidth = 0
+	bx,by,bw,bh = buttonRect
+	cx = bx + .5*(bw)
+	cy = by + .5*(bh)
 	font = pygame.font.Font(state['font'], state['size'])
 	for subtext in text.split("\n"):
 		textLines.append(font.render(subtext, False, state['text_color']))
@@ -104,16 +111,26 @@ def renderText(screen, text, cx, cy, state):
 		totalHeight += th
 		totalWidth = max(totalWidth, tw)
 	nlines = len(textLines)
+	# sx, sy = pygame.display.get_window_size()
 	for i in range(nlines):
 		_,_,tw,th = textLines[i].get_rect()
-		tx = cx - 0.5*tw
-		ty = int(cy - 0.5*totalHeight + i*1.05*th)
-		# if 'align' in state and state['align'] == "center":
-		# 	tx = cx - 0.5*tw
+		tx = cx - 0.5*tw # center is default
+		ty = int(cy - 0.5*totalHeight + i*1.05*th) # center is default
+		#vertical
+		if 'alignV' in state and state['alignV'] == "top":
+			ty = by + i * 1.05*th
+		if 'alignV' in state and state['alignV'] == "bottom":
+			ty = by + bh - (nlines-i) * 1.05*th
+		#horizontal
 		if 'align' in state and state['align'] == "left":
-			tx = cx - .5*totalWidth
+			if 'fixedWidth' in state and state['fixedWidth']:
+				tw = state['fixedWidth']
+			tx = max(bx, cx - .5*max(tw, totalWidth))
 		elif 'align' in state and state['align'] == "right":
-			tx = cx + .5*totalWidth - tw
+			tx = max(bx, bx + bw - tw)
+		# ignore out of button
+		if ty < by or ty > by+bh or tx > bx+bw:
+			continue
 		screen.blit(textLines[i], (tx, ty))
 
 def drawButtons(screen, buttons):
@@ -124,10 +141,8 @@ def drawButtons(screen, buttons):
 			color=state['button_color'],
 			rect=button.rect
 		)
-		x,y,w,h = button.rect
 		renderText(screen,
+			buttonRect = button.rect,
 			text = button.value,
-			cx = x + .5*(w),
-			cy = y + .5*(h),
 			state = state
 		)
