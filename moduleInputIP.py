@@ -120,7 +120,11 @@ def run(screen, moduleState, cache):
 	if not setup:
 		raise(RuntimeError("inputNumber module is not intiated"))
 	for event in pygame.event.get():
-		moduleState = doEvent(event, moduleState, cache)
+		if event.type == pygame.QUIT:
+			print("EVENT QUIT")
+			moduleState = "exit"
+		else:
+			moduleState = doEvent(event, moduleState, cache)
 		if moduleState == "exit":
 			break
 	kspButtons.drawButtons(screen, buttons+numbers)

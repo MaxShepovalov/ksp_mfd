@@ -8,12 +8,14 @@ idleState = {
 	"button_color": (150,150,150),
 	"text_color": (0,0,0),
 	"font": DEFAULT_FONT,
+	"align": "center",
 	"size": 60
 }
 pressedState = {
 	"button_color": (150,255,150),
 	"text_color": (0,0,0),
 	"font": DEFAULT_FONT,
+	"align": "center",
 	"size": 60
 }
 
@@ -70,7 +72,7 @@ def findButtonInState(buttons, state, groups = set()):
 		if button.state == state and button.inGroups(groups):
 			return button
 
-def makeButtons(buttonsarr, buttonValuesTable, xPanel, yPanel, xWidth, yHeight, border=1, state = "idle", groups = set(), states = defaultStates):
+def makeButtons(buttonsarr, buttonValuesTable, xPanel, yPanel, xWidth, yHeight, border=1, clickable=True, state = "idle", groups = set(), states = defaultStates):
 	buttonRows = len(buttonValuesTable)
 	buttonSizeY = float(yHeight)/buttonRows
 	for r in range(buttonRows):
@@ -80,12 +82,39 @@ def makeButtons(buttonsarr, buttonValuesTable, xPanel, yPanel, xWidth, yHeight, 
 			xCorner = xPanel+c*buttonSizeX
 			yCorner = yPanel+r*buttonSizeY
 			buttonsarr.append(KSPButton(
-				xCorner+border, yCorner+border, buttonSizeX-border, buttonSizeY-border,
-				buttonValuesTable[r][c],
+				x = xCorner+border,
+				y = yCorner+border,
+				w = buttonSizeX-border,
+				h = buttonSizeY-border,
+				value = buttonValuesTable[r][c],
+				clickable = clickable,
 				state = state,
 				groups = groups,
 				states = states)
 			)
+
+def renderText(screen, text, cx, cy, state):
+	textLines = []
+	totalHeight = 0
+	totalWidth = 0
+	font = pygame.font.Font(state['font'], state['size'])
+	for subtext in text.split("\n"):
+		textLines.append(font.render(subtext, False, state['text_color']))
+		_,_,tw,th =textLines[-1].get_rect()
+		totalHeight += th
+		totalWidth = max(totalWidth, tw)
+	nlines = len(textLines)
+	for i in range(nlines):
+		_,_,tw,th = textLines[i].get_rect()
+		tx = cx - 0.5*tw
+		ty = int(cy - 0.5*totalHeight + i*1.05*th)
+		# if 'align' in state and state['align'] == "center":
+		# 	tx = cx - 0.5*tw
+		if 'align' in state and state['align'] == "left":
+			tx = cx - .5*totalWidth
+		elif 'align' in state and state['align'] == "right":
+			tx = cx + .5*totalWidth - tw
+		screen.blit(textLines[i], (tx, ty))
 
 def drawButtons(screen, buttons):
 	for button in buttons:
@@ -95,10 +124,10 @@ def drawButtons(screen, buttons):
 			color=state['button_color'],
 			rect=button.rect
 		)
-		textFont = pygame.font.Font(state['font'], state['size'])
-		textsurface = textFont.render(button.value, False, state['text_color'])
 		x,y,w,h = button.rect
-		_,_,tw,th =textsurface.get_rect()
-		tx = x + .5*(w-tw)
-		ty = y + .5*(h-th)
-		screen.blit(textsurface, (tx, ty))
+		renderText(screen,
+			text = button.value,
+			cx = x + .5*(w),
+			cy = y + .5*(h),
+			state = state
+		)

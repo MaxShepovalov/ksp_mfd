@@ -19,19 +19,15 @@ def processClick(xTouch, yTouch, moduleState):
 			moduleState = 'exit'
 		elif btnPressed.value == CONNECT:
 			# activate next module
-			pass
+			moduleState = 'connect'
 		else:
 			# change ip
 			moduleState = 'inputIP'
 	return moduleState
 
-##########################################3
 def doEvent(pyevent, moduleState):
 	if not setup:
 		raise(RuntimeError("startScreen module is not intiated"))
-	if pyevent.type == pygame.QUIT:
-		print("EVENT QUIT")
-		moduleState = "exit"
 	if pyevent.type == pygame.FINGERDOWN:
 		# find pixel coordinate
 		sx, sy = pygame.display.get_window_size()
@@ -44,6 +40,7 @@ def doEvent(pyevent, moduleState):
 		kspButtons.untouchAllButtons(buttons)
 	return moduleState
 
+##########################################
 def initModule(cache):
 	global buttons
 	global setup
@@ -65,7 +62,11 @@ def run(screen, moduleState, cache):
 	if not setup:
 		raise(RuntimeError("startScreen module is not intiated"))
 	for event in pygame.event.get():
-		moduleState = doEvent(event, moduleState)
+		if event.type == pygame.QUIT:
+			print("EVENT QUIT")
+			moduleState = "exit"
+		else:
+			moduleState = doEvent(event, moduleState)
 		if moduleState != "run":
 			break
 	kspButtons.drawButtons(screen, buttons)

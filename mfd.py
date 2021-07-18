@@ -2,11 +2,15 @@ import pygame
 from pygame.locals import *
 import moduleInputIP
 import moduleStartSceen
+import moduleDefault
+import moduleConnect
 import sys
 
 modules = {
 	'start': moduleStartSceen,
-	'inputIP': moduleInputIP
+	'inputIP': moduleInputIP,
+	'connect': moduleConnect,
+	'default': moduleDefault
 }
 
 #validate modules
@@ -43,26 +47,29 @@ cache = {
 	"revertModule": "start"
 }
 
-while cache['appState'] == "run":
-	screen.fill(0)
-	if moduleState == "init":
-		moduleState = modules[activeModule].initModule(cache)
-	elif moduleState == "run":
-		moduleState = modules[activeModule].run(screen, moduleState, cache)
-	elif moduleState == "exit":
-		modules[activeModule].closeModule(cache)
-		if 'revertModule' in cache and cache['revertModule']:
-			cache['moveToModule'] = cache['revertModule']
-			cache['revertModule'] = None
-	if 'moveToModule' in cache and cache['moveToModule']:
-		activeModule = cache['moveToModule']
-		cache['moveToModule'] = None
-		moduleState = 'init'
-	#safe exit
-	if 'moveToModule' not in cache and 'revertModule' not in cache and moduleState == "exit":
-		cache['appState'] = "exit"
-	pygame.display.flip()
-	pygame.time.wait(10)
+try:
+	while cache['appState'] == "run":
+		screen.fill(0)
+		if moduleState == "init":
+			moduleState = modules[activeModule].initModule(cache)
+		elif moduleState == "run":
+			moduleState = modules[activeModule].run(screen, moduleState, cache)
+		elif moduleState == "exit":
+			modules[activeModule].closeModule(cache)
+			if 'revertModule' in cache and cache['revertModule'] != None:
+				cache['moveToModule'] = cache['revertModule']
+				cache['revertModule'] = None
+		if 'moveToModule' in cache and cache['moveToModule'] != None:
+			activeModule = cache['moveToModule']
+			cache['moveToModule'] = None
+			moduleState = 'init'
+		#safe exit
+		if 'moveToModule' not in cache and 'revertModule' not in cache and moduleState == "exit":
+			cache['appState'] = "exit"
+		pygame.display.flip()
+		pygame.time.wait(10)
+except Exception as e:
+	print(e)
 
 pygame.quit()
 print("cache: {}".format(cache))
