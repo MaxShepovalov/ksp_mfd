@@ -3,14 +3,23 @@ from pygame.locals import *
 import kspButtons
 
 frames = 0
-text = []
+screenElements = []
+
+def addLog(msg):
+	log[0] = "{}\n{}".format(log[0],msg)
+	if logPanel:
+		logPanel.value = str(log[0])
 
 ##########################################
 MODULE_NAME='connect'
+DISCONNECT = "disconnect"
+log = [""]
+logPanel = None
 setup = False
 def initModule(cache):
 	global setup
 	global frames
+	global logPanel
 	states = {
 		'idle': {
 			"button_color": (0,0,0),
@@ -22,7 +31,10 @@ def initModule(cache):
 			'align': 'right'
 		}
 	}
-	kspButtons.makeButtons(text, [[MODULE_NAME+" screen\nshutdown in about 2 seconds"]], 5, 5, 790, 470, clickable=False, border = 5, states=states)
+	kspButtons.makeButtons(screenElements, [log], 5, 5, 790, 350, clickable=False, border = 5, states=states)
+	logPanel = screenElements[0]
+	addLog(MODULE_NAME+" screen\nshutdown in about 2 seconds")
+	kspButtons.makeButtons(screenElements, [[DISCONNECT]], 5, 360, 790, 110, clickable=True)
 	setup = True
 	frames = 20
 	moduleState = "run"
@@ -31,27 +43,43 @@ def initModule(cache):
 def closeModule(cache):
 	global setup
 	global frames
-	text = []
+	screenElements = []
 	setup = False
 	moduleState = "exit"
 	frames = 0
+	log[0] = ""
 	return moduleState
+
+def getTouchXY(pyevent):
+	if pyevent.type == pygame.FINGERDOWN:
+		sx, sy = pygame.display.get_window_size()
+		return pyevent.x*sx, pyevent.y*sy
+	if pyevent.type == pygame.MOUSEBUTTONDOWN:
+		return pyevent.pos
+	raise(TypeError("getTouchXY event {} is not FINGERDOWN or MOUSEBUTTONDOWN".format(pygame.event.event_name(pyevent.type))))
 
 def run(screen, moduleState, cache):
 	global frames
 	if not setup:
 		raise(RuntimeError("startScreen module is not intiated"))
 	for event in pygame.event.get():
-		if event.type in [pygame.QUIT, pygame.FINGERDOWN, pygame.MOUSEBUTTONDOWN]:
+		if event.type in [pygame.QUIT]:
 			print("EVENT QUIT")
 			moduleState = "exit"
+		if event.type in [pygame.FINGERDOWN, pygame.MOUSEBUTTONDOWN]:
+			x, y = getTouchXY(event)
+			btn = kspButtons.findButtonByPoint(screenElements, x, y)
+			if btn and btn.value == DISCONNECT:
+				print("EVENT QUIT")
+				moduleState = "exit"
 		if moduleState != "run":
 			break
 	frames -= 1
-	text[0].value += "\n{}".format(frames)
-	kspButtons.drawButtons(screen, text)
+	addLog(frames)
+	print(log)
+	kspButtons.drawButtons(screen, screenElements)
 	if frames <= 0:
-		cache['appState'] = "exit"
+		# cache['appState'] = "exit"
 		moduleState = "exit"
 	return moduleState
 

@@ -2,23 +2,30 @@ import pygame
 from pygame.locals import *
 
 from OpenGL.GL import *
-import OpenGL.GLU as glu
+from OpenGL.GLU import *
+from OpenGL.GLUT import *
 
 import math
 
 pygame.init()
 display = (400, 300)
-scree = pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+screen = pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
 
 glEnable(GL_DEPTH_TEST)
 
-sphere = glu.gluNewQuadric() #Create new sphere
+#get taxture
+
+glBindTexture(GL_TEXTURE_2D, self.texture_id)
+
+#make navball
+sphere = gluNewQuadric() #Create new sphere
+gluQuadricTexture(qobj, GL_TRUE)
 
 glMatrixMode(GL_PROJECTION)
-glu.gluPerspective(45, (display[0]/display[1]), 0.1, 50.0)
+gluPerspective(45, (display[0]/display[1]), 0.1, 50.0)
 
 glMatrixMode(GL_MODELVIEW)
-glu.gluLookAt(0, -8, 0, 0, 0, 0, 0, 0, 1)
+gluLookAt(0, -8, 0, 0, 0, 0, 0, 0, 1)
 viewMatrix = glGetFloatv(GL_MODELVIEW_MATRIX)
 glLoadIdentity()
 
@@ -30,8 +37,10 @@ while run:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE or event.key == pygame.K_RETURN:
                 run = False  
+        if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.FINGERDOWN:
+        	run = False
 
-    keypress = pygame.key.get_pressed()
+    # keypress = pygame.key.get_pressed()
 
     # init model view matrix
     glLoadIdentity()
@@ -40,15 +49,15 @@ while run:
     glPushMatrix()
     glLoadIdentity()
 
-    # apply the movment 
-    if keypress[pygame.K_w]:
-        glTranslatef(0,0,0.1)
-    if keypress[pygame.K_s]:
-        glTranslatef(0,0,-0.1)
-    if keypress[pygame.K_d]:
-        glTranslatef(-0.1,0,0)
-    if keypress[pygame.K_a]:
-        glTranslatef(0.1,0,0)
+    # # apply the movment 
+    # if keypress[pygame.K_w]:
+    #     glTranslatef(0,0,0.1)
+    # if keypress[pygame.K_s]:
+    #     glTranslatef(0,0,-0.1)
+    # if keypress[pygame.K_d]:
+    #     glTranslatef(-0.1,0,0)
+    # if keypress[pygame.K_a]:
+    #     glTranslatef(0.1,0,0)
 
     # multiply the current matrix by the get the new view matrix and store the final vie matrix 
     glMultMatrixf(viewMatrix)
@@ -64,7 +73,7 @@ while run:
 
     glTranslatef(-1.5, 0, 0) #Move to the place
     glColor4f(0.5, 0.2, 0.2, 1) #Put color
-    glu.gluSphere(sphere, 1.0, 32, 16) #Draw sphere
+    gluSphere(sphere, 1.0, 32, 16) #Draw sphere
 
     glPopMatrix()
 
