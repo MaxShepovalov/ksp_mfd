@@ -146,3 +146,11 @@ def drawButtons(screen, buttons):
 			text = button.value,
 			state = state
 		)
+
+def getTouchXY(pyevent):
+	if pyevent.type == pygame.FINGERDOWN:
+		sx, sy = pygame.display.get_window_size()
+		return pyevent.x*sx, pyevent.y*sy
+	if pyevent.type == pygame.MOUSEBUTTONDOWN:
+		return pyevent.pos
+	raise(TypeError("getTouchXY event {} is not FINGERDOWN or MOUSEBUTTONDOWN".format(pygame.event.event_name(pyevent.type))))

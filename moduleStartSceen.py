@@ -59,6 +59,7 @@ def closeModule(cache):
 	return "exit"
 
 def run(screen, moduleState, cache):
+	screen.fill(0)
 	if not setup:
 		raise(RuntimeError("startScreen module is not intiated"))
 	for event in pygame.event.get():

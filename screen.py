@@ -15,11 +15,11 @@ glEnable(GL_DEPTH_TEST)
 
 #get taxture
 
-glBindTexture(GL_TEXTURE_2D, self.texture_id)
+# glBindTexture(GL_TEXTURE_2D, self.texture_id)
 
 #make navball
 sphere = gluNewQuadric() #Create new sphere
-gluQuadricTexture(qobj, GL_TRUE)
+# gluQuadricTexture(qobj, GL_TRUE)
 
 glMatrixMode(GL_PROJECTION)
 gluPerspective(45, (display[0]/display[1]), 0.1, 50.0)

@@ -27,6 +27,7 @@ def closeModule(cache):
 	return moduleState
 
 def run(screen, moduleState, cache):
+	screen.fill(0)
 	global frames
 	if not setup:
 		raise(RuntimeError("startScreen module is not intiated"))
