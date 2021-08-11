@@ -45,6 +45,25 @@ def drop(conn):
     kspLog("disconnected")
     exit()
 
+streams = []
+def makeStream(value, refFrame=None, attr=None):
+    stream = None
+    if not refFrame:
+        if not attr:
+            stream = c.add_stream(value)
+        else:
+            stream = c.add_stream(value, attr)
+    else:
+        stream = c.add_stream(value, refFrame)
+    if stream:
+        streams.append(stream)
+    return stream
+
+def dropStreams():
+    for s in streams:
+        s.remove()
+    streams.clear()
+
 def getDirection():
     if isFlight():
         av = c.space_center.active_vessel
@@ -95,6 +114,13 @@ def isConnected():
 
 def vectorToAngles(vx,vy,vz):
     return (math.asin(vz)*180/math.pi, math.atan2(vx,vy)*180/math.pi)
+
+def getPYRRotation(obj, refFrame):
+    qx,qy,qz,qw = obj.rotation(refFrame)
+    roll  = math.atan2(2*qy*qw - 2*qx*qz, 1 - 2*qy*qy - 2*qz*qz);
+    pitch = math.atan2(2*qx*qw - 2*qy*qz, 1 - 2*qx*qx - 2*qz*qz);
+    yaw   =  math.asin(2*qx*qy + 2*qz*qw);
+    return pitch*180/math.pi, yaw*180/math.pi, roll*180/math.pi
 
 def isTargetingVessel():
     return c.space_center.target_vessel != None or c.space_center.target_docking_port!=None

@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import kspButtons
 import kspConnect
+import math
 
 screenElements = []
 
@@ -47,7 +48,7 @@ def getDockingGuidance():
         return "not in vessel", None
     # get main controlling part
     ac = av.parts.controlling
-    if selectedControl and selectedTarget not in [ac.tag, ac.name]:
+    if selectedControl and selectedControl not in [ac.tag, ac.name]:
         # get by tag
         byTag = av.parts.with_tag(selectedControl)
         if len(byTag) > 0:
@@ -61,19 +62,22 @@ def getDockingGuidance():
         acName = ac.name
     # get target port
     tp = kspConnect.c.space_center.target_docking_port
-    tpName = "not a port", None
+    tpName = "not a port"
     if not tp:
         # get entire target vessel
         tp = kspConnect.c.space_center.target_vessel
         if selectedTarget:
             # get by tag
-            byTag = tp.parts.with_tag(selectedControl)
+            byTag = tp.parts.with_tag(selectedTarget)
             if len(byTag) > 0:
                 tp = byTag[0]
             else:
-                byName = tp.parts.with_name(selectedControl)
+                byName = tp.parts.with_name(selectedTarget)
                 if len(byName) > 0:
                     tp = byName[0]
+            tpName = tp.tag
+            if tpName == None or tpName == '':
+                tpName = tp.name
     else:
         tp = tp.part
         if selectedTarget and selectedTarget not in [tp.name, tp.tag]:
@@ -92,26 +96,34 @@ def getDockingGuidance():
     if not tp:
         return "not targeting any vessel", None
     # get angles to target
-    x,y,z = tp.direction(ac.reference_frame)
-    pitch, yaw = kspConnect.vectorToAngles(-x, -y, -z)
+    pitch, yaw, roll = kspConnect.getPYRRotation(ac, tp.reference_frame)
+    pitch = (-pitch%360)-180 #((pitch+180+180)%360)-180
+    yaw = -yaw
+    roll = -roll
     # get translation to target
     # ATx,ATy,ATz = tp.position(ac.reference_frame)
-    TAx,TAy,TAz = ac.position(tp.reference_frame)
+    TAx,TAy,TAz = tp.position(ac.reference_frame)
     green = TAy > 0 # and ATy > 0
     ATdist = pow(TAx*TAx + TAy*TAy + TAz*TAz,0.5)
+    # get relative speed
+    ATvx, ATvy, ATvz = tp.velocity(ac.reference_frame)
+    ATv = pow(ATvx*ATvx + ATvy*ATvy + ATvz*ATvz,0.5)
     data = {
-        'targetPortName':tpName,
+        'targetPortName':str(tpName),
         'activeControlName':acName,
         'isGreen':green,
-        'pitch':pitch, 'yaw':yaw, 'dist':ATdist,
-        'x':TAx, 'z':TAz
+        'pitch':pitch, 'yaw':yaw, 'roll':roll,
+        'dist':ATdist,
+        'x':TAx, 'z':TAz,
+        'relVX':ATvx, 'relVY':ATvy, 'relVZ':ATvz,
+        'relVA':ATv
     }
     # make result
-    # text = "Ptc:{:.2f} Yaw:{:.2f} Dst:{:.2f}\nA-T X:{:.2f} Y:{:.2f} Z:{:.2f}\nT-A X:{:.2f} Y:{:.2f} Z:{:.2f}".format(
-    text = "Ptc:{:.2f} Yaw:{:.2f} Dst:{:.2f}\nX:{:.2f} Y:{:.2f} Z:{:.2f}".format(
-        pitch, yaw, ATdist,
-        # ATx,ATy,ATz,
-        TAx,TAy,TAz
+    text = "P:{:.2f} Y:{:.2f}\nR:{:.2f}\nD:{:.2f} V:{:.2f}\nX:{:.2f} Y:{:.2f} Z:{:.2f}\nVx{:.2f} y{:.2f} z{:.2f}".format(
+        pitch, yaw, roll,
+        ATdist, ATv,
+        TAx,TAy,TAz,
+        ATvx, ATvy, ATvz
     )
     return text, data
 
@@ -126,6 +138,25 @@ def drawGuidance(screen, guidanceData):
         lineColor = (255,0,0)
         if guidanceData['isGreen']:
             lineColor = (0,255,0)
+        # draw roll
+        rX = math.cos(guidanceData['roll']*math.pi/180)
+        rY = math.sin(guidanceData['roll']*math.pi/180)
+        sizeOuter = 200
+        sizeInner = 150
+        pygame.draw.line(screen, (255,255,0), (middleCrossX+sizeOuter*rX,middleCrossY+sizeOuter*rY), (middleCrossX+sizeInner*rX, middleCrossY+sizeInner*rY), 3)
+        # draw relative velocity
+        vX = middleCrossX-sizeCross*guidanceData['relVX']/guidanceData['relVA']
+        vY = middleCrossY-sizeCross*guidanceData['relVZ']/guidanceData['relVA']
+        if vX > middleCrossX-sizeCross and vX < middleCrossX+sizeCross and vY > middleCrossY-sizeCross and vY < middleCrossX+sizeCross:
+            if guidanceData['relVY'] < 0:
+                symbolSize = 10
+                pygame.draw.line(screen, lineColor, (vX-symbolSize,vY), (vX, vY-symbolSize), 3)
+                pygame.draw.line(screen, lineColor, (vX,vY-symbolSize), (vX+symbolSize, vY), 3)
+                pygame.draw.line(screen, lineColor, (vX+symbolSize,vY), (vX, vY+symbolSize), 3)
+                pygame.draw.line(screen, lineColor, (vX,vY+symbolSize), (vX-symbolSize, vY), 3)
+            else:
+                pygame.draw.line(screen, lineColor, (vX-5,vY-5), (vX+5, vY+5), 3)
+                pygame.draw.line(screen, lineColor, (vX-5,vY+5), (vX+5, vY-5), 3)
         # draw horizontal translation
         dX = middleCrossX+sizeCross*guidanceData['x']/10.
         dX = limitValue(dX,middleCrossX-sizeCross+20,middleCrossX+sizeCross-20)
@@ -144,7 +175,10 @@ def drawGuidance(screen, guidanceData):
             # draw circle
             cx = middleCrossX+sizeCross*guidanceData['yaw']/60.
             cy = middleCrossY+sizeCross*guidanceData['pitch']/60.
-            pygame.draw.circle(screen, (255,255,0), (cx, cy), 10, 3)
+            pygame.draw.circle(screen, (255,255,0), (cx, cy), 15, 5)
+            pygame.draw.line(screen, (255,255,0), (cx,cy), (cx,cy-20), 3)
+            pygame.draw.line(screen, (255,255,0), (cx-20,cy), (cx-15,cy), 3)
+            pygame.draw.line(screen, (255,255,0), (cx+15,cy), (cx+20,cy), 3)
     # draw UI
     pygame.draw.line(screen, (100,100,100), (middleCrossX, middleCrossY-sizeCross), (middleCrossX, middleCrossY+sizeCross), 1)
     pygame.draw.line(screen, (100,100,100), (middleCrossX-sizeCross, middleCrossY), (middleCrossX+sizeCross, middleCrossY), 1)
