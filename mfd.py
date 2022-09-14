@@ -6,6 +6,8 @@ import moduleDefault
 import moduleConnect
 import moduleDocking
 import moduleSelectFromList
+import moduleParts
+import kspCache
 import sys
 
 modules = {
@@ -14,6 +16,7 @@ modules = {
     'connect': moduleConnect,
     'docking': moduleDocking,
     'selectList': moduleSelectFromList,
+    'parts': moduleParts,
     'default': moduleDefault
 }
 
@@ -36,6 +39,11 @@ if "fullscreen" in inputArgs:
     inputArgs.remove("fullscreen")
     fullscreen = Trued
 
+
+
+moduleState = "init"
+cache = kspCache.getDefaultCache()
+
 #start screen
 pygame.init()
 screen = None
@@ -43,14 +51,6 @@ if fullscreen:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 else:
     screen = pygame.display.set_mode((800,480))
-
-moduleState = "init"
-cache = {
-    'appState': "run",
-    'ip': "192.168.2.7",
-    "revertModule": "start"
-}
-
 try:
     while cache['appState'] == "run":
         screen.fill(0)

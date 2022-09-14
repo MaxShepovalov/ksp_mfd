@@ -2,6 +2,7 @@
 import pygame
 from pygame.locals import *
 import kspButtons
+import kspCache
 
 #[  up  ]
 #[ down ]
@@ -138,12 +139,9 @@ def run(screen, moduleState, cache):
 if __name__ == '__main__':
     pygame.init()
     screen = pygame.display.set_mode((800,480))
-    cache = {
-        'appState': "run",
-        'ip': "0.0.0.0",
-        'inputList':["example1","example2","example3","example4","example5","example6","example7","example8","example9","example10","example11","example12"],
-        'inputSelect': 7
-    }
+    cache = kspCache.getDefaultCache()
+    cache['inputList'] = ["example1","example2","example3","example4","example5","example6","example7","example8","example9","example10","example11","example12"]
+    cache['inputSelect'] =  7
     initModule(cache)
     moduleState = "run"
     while moduleState == "run":

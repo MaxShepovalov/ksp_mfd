@@ -1,6 +1,8 @@
 import pygame
 from pygame.locals import *
 import kspButtons
+import kspCache
+import topMenu
 
 frames = 0
 text = []
@@ -11,7 +13,8 @@ setup = False
 def initModule(cache):
 	global setup
 	global frames
-	kspButtons.makeButtons(text, [[MODULE_NAME+" screen"],["shutdown in 2 seconds"]], 5, 5, 790, 470, clickable=False, border = 5)
+	topMenu.init(cache)
+	kspButtons.makeButtons(text, [["select module above"]], 5, 55, 790, 420, clickable=False, border = 5)
 	setup = True
 	frames = 500
 	moduleState = "run"
@@ -37,7 +40,7 @@ def run(screen, moduleState, cache):
 			moduleState = "exit"
 		if moduleState != "run":
 			break
-	frames -= 1
+	topMenu.drawButtons(screen)
 	kspButtons.drawButtons(screen, text)
 	if frames <= 0:
 		cache['appState'] = "exit"
@@ -47,10 +50,7 @@ def run(screen, moduleState, cache):
 if __name__ == '__main__':
 	pygame.init()
 	screen = pygame.display.set_mode((800,480))
-	cache = {
-		'appState': "run",
-		'ip': "0.0.0.0"
-	}
+	cache = kspCache.getDefaultCache()
 	initModule(cache)
 	moduleState = "run"
 	while moduleState == "run":

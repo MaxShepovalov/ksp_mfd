@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 import kspButtons
+import kspCache
 
 MODULE_NAME = "startScreen"
 setup = False
@@ -81,10 +82,7 @@ def run(screen, moduleState, cache):
 if __name__ == '__main__':
 	pygame.init()
 	screen = pygame.display.set_mode((800,480))
-	cache = {
-		'appState': "run",
-		'ip': "0.0.0.0"
-	}
+	cache = kspCache.getDefaultCache()
 	initModule(cache)
 	moduleState = "run"
 	while moduleState == "run":

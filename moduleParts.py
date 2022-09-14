@@ -134,7 +134,7 @@ def limitValue(value, minV, maxV):
 
 def drawGuidance(screen, guidanceData):
     middleCrossX = 600
-    middleCrossY = 290
+    middleCrossY = 240
     sizeCross = 200
     if guidanceData != None:
         lineColor = (255,0,0)
@@ -186,7 +186,7 @@ def drawGuidance(screen, guidanceData):
     pygame.draw.line(screen, (100,100,100), (middleCrossX-sizeCross, middleCrossY), (middleCrossX+sizeCross, middleCrossY), 1)
 
 ##########################################
-MODULE_NAME='default'
+MODULE_NAME='parts'
 setup = False
 def initModule(cache):
     global setup
@@ -230,9 +230,9 @@ def initModule(cache):
     }
     topMenu.init(cache)
     screenElements = []
-    kspButtons.makeButtons(screenElements, [["control"]], 5, 55, 300, 80, clickable=True, border = 5, states=statesButton, groups={"controlSelect"})
-    kspButtons.makeButtons(screenElements, [["target"]], 5, 135, 300, 80, clickable=True, border = 5, states=statesButton, groups={"targetSelect"})
-    kspButtons.makeButtons(screenElements, [[MODULE_NAME+" screen"]], 5, 220, 300, 260, clickable=False, border = 5, states=statesData, groups={"exit"})
+    kspButtons.makeButtons(screenElements, [["control"]], 5, 5, 300, 80, clickable=True, border = 5, states=statesButton, groups={"controlSelect"})
+    kspButtons.makeButtons(screenElements, [["target"]], 5, 85, 300, 80, clickable=True, border = 5, states=statesButton, groups={"targetSelect"})
+    kspButtons.makeButtons(screenElements, [[MODULE_NAME+" screen"]], 5, 170, 300, 310, clickable=False, border = 5, states=statesData, groups={"exit"})
     setup = True
     moduleState = "run"
     return moduleState
