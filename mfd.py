@@ -37,7 +37,7 @@ activeModule = "start"
 fullscreen = False
 if "fullscreen" in inputArgs:
     inputArgs.remove("fullscreen")
-    fullscreen = Trued
+    fullscreen = True
 
 
 
@@ -47,7 +47,7 @@ cache = kspCache.getDefaultCache()
 #start screen
 pygame.init()
 screen = None
-if fullscreen:
+if fullscreen is True:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 else:
     screen = pygame.display.set_mode((800,480))
