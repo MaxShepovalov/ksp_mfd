@@ -66,7 +66,7 @@ def init_module(memory):
         },
         LIST_EXP_STYLE: {
             "button_color": kspButtons.GREY,  # r b g
-            "text_color": kspButtons.WHITE,  # r g b
+            "text_color": kspButtons.GREEN,  # r g b
             "font": kspButtons.DEFAULT_FONT,  # filename
             "align": "center",  # center, left, or right
             "alignV": "center",  # center, top, or bottom
@@ -208,10 +208,12 @@ def refresh(memory):
                 if memory["moduleDevices"]['view'][true_device_row]['expandable']:
                     if memory["moduleDevices"]['view'][true_device_row]['expanded']:
                         ui_expand.value = 'V'
+                        ui_expand.idle_style_id = LIST_EXP_STYLE
+                        ui_expand.style = LIST_EXP_STYLE
                     else:
                         ui_expand.value = '>'
-                    ui_expand.idle_style_id = LIST_EXP_STYLE
-                    ui_expand.style = LIST_EXP_STYLE
+                        ui_expand.idle_style_id = kspButtons.IDLE_STYLE
+                        ui_expand.style = kspButtons.IDLE_STYLE
                     ui_expand.clickable = True
                 else:
                     ui_expand.idle_style_id = HIDDEN_STYLE
@@ -221,7 +223,7 @@ def refresh(memory):
         top_idx = memory["moduleDevices"]['row_offset']
         memory["moduleDevices"]['scroll_top'] = memory["topRowY"] + 5 + int(top_idx * scroll_full_height * 1.0 / all_parts_count)
         top_idx = min(all_parts_count, list_size + top_idx)
-        memory["moduleDevices"]['scroll_height'] = int(top_idx * scroll_full_height * 1.0 / all_parts_count)
+        memory["moduleDevices"]['scroll_height'] = int(top_idx * scroll_full_height * 1.0 / all_parts_count) - memory["moduleDevices"]['scroll_top'] + memory["topRowY"] + 5
         memory["moduleDevices"]['state'] = 'idle'
 
 
@@ -246,13 +248,18 @@ def get_dict_element_by_path(data, path):
 
 def update_viewable_part(memory, path='', use_char=''):
     try:
-        tabulation = max(0, path.count('nodes')-1) * '-'
         part = get_dict_element_by_path(memory["moduleDevices"]['data'], path)
+        expandable = 'nodes' in part and part['nodes'] is not None and len(part['nodes']) > 0
+        tabulation = ''
+        if len(path) > 0 and not expandable:
+            tabulation = max(0, path.count('nodes')) * '  ' + hex(max(0, path.count('nodes')))[2:]
+        if len(path) > 0 and expandable:
+            tabulation = max(0, path.count('nodes')) * '--' + hex(max(0, path.count('nodes')))[2:]
         view_name = "{}{}{} - {}".format(tabulation, use_char, part['name'], part['type'])
         memory["moduleDevices"]['view'].append({
             'show': view_name,
             'path': path,
-            'expandable': 'nodes' in part and part['nodes'] is not None and len(part['nodes']) > 0,
+            'expandable': expandable,
             'expanded': part['expanded']
         })
         if part['expanded']:
