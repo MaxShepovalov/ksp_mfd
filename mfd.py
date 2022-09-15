@@ -1,3 +1,4 @@
+import sys
 import pygame
 import appSelect
 import moduleSettings
@@ -28,9 +29,12 @@ modules = {
 memory["initModule"] = 'appSelect'
 
 
-def start():
+def start(is_full_screen):
     pygame.init()
-    screen = pygame.display.set_mode((memory['screenX'], memory['screenY']))
+    if is_full_screen:
+        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    else:
+        screen = pygame.display.set_mode((memory['screenX'], memory['screenY']))
     kspConnect.log_enabled = memory["log_enabled"]
 
     while memory['appState'] == "run":
@@ -91,4 +95,9 @@ def check_module_available(module_name):
 
 
 if __name__ == "__main__":
-    start()
+    inputArgs = [] + sys.argv
+    full_screen = False
+    if "fullscreen" in inputArgs:
+        inputArgs.remove("fullscreen")
+        full_screen = True
+    start(full_screen)
