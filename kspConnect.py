@@ -1,7 +1,6 @@
 import krpc
 import math
 
-defurl = "192.168.2.7"
 c = None
 
 logTarget = None
@@ -152,7 +151,7 @@ def keepPrint():
     print("Done")
 
 if __name__ == "__main__":
-    connect(defurl)
+    connect("192.168.2.7")
 
 # get active vessel  # av = c.space_center.active_vessel
 # get orbit          # orbit = av.orbit

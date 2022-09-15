@@ -1,79 +1,85 @@
 import pygame
-from pygame.locals import *
-import moduleInputIP
-import moduleStartSceen
-import moduleDefault
-import moduleConnect
-import moduleDocking
-import moduleSelectFromList
-import moduleParts
-import kspCache
-import sys
+import appSelect
+import moduleSettings
 
-modules = {
-    'start': moduleStartSceen,
-    'inputIP': moduleInputIP,
-    'connect': moduleConnect,
-    'docking': moduleDocking,
-    'selectList': moduleSelectFromList,
-    'parts': moduleParts,
-    'default': moduleDefault
+memory = {
+    "kspIp": "127.0.0.1",
+    "kspConnected": False,
+    "appState": "run",
+    "version": "1.0",
+    "screenX": 800,
+    "screenY": 480,
+    "topRowY": 50,
+    "activeModule": None,
+    "destroyModule": None,
+    "initModule": None,
+    "popup_active": False
 }
-
-#validate modules
-for m in modules:
-    if not modules[m].initModule:
-        raise(RuntimeError("module {} doesn't have initModule(cache) method".format(m)))
-    if not modules[m].closeModule:
-        raise(RuntimeError("module {} doesn't have closeModule(cache) method".format(m)))
-    if not modules[m].run:
-        raise(RuntimeError("module {} doesn't have run(screen, appState, cache) method".format(m)))
-    if not modules[m].MODULE_NAME:
-        raise(RuntimeError("module {} doesn't have MODULE_NAME".format(m)))
-
-inputArgs = []+sys.argv
-
-activeModule = "start"
-fullscreen = False
-if "fullscreen" in inputArgs:
-    inputArgs.remove("fullscreen")
-    fullscreen = True
+modules = {
+    'appSelect': appSelect,
+    'moduleSettings': moduleSettings
+}
+memory["initModule"] = 'appSelect'
 
 
+def start():
+    pygame.init()
+    screen = pygame.display.set_mode((memory['screenX'], memory['screenY']))
 
-moduleState = "init"
-cache = kspCache.getDefaultCache()
+    while memory['appState'] == "run":
+        # check events
+        for event in pygame.event.get():
+            if event.type in [pygame.QUIT]:
+                memory['appState'] = "exit"
+            if event.type in [pygame.FINGERDOWN, pygame.MOUSEBUTTONDOWN]:
+                x, y = get_touch_coordinates(event)
+                found_app_select = appSelect.process_click(memory, x, y)
+                if not found_app_select and check_module_available('activeModule'):
+                    modules[memory['activeModule']].process_click(memory, x, y)
 
-#start screen
-pygame.init()
-screen = None
-if fullscreen is True:
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-else:
-    screen = pygame.display.set_mode((800,480))
-try:
-    while cache['appState'] == "run":
+        # clear old elements first
+        if check_module_available('destroyModule'):
+            modules[memory['destroyModule']].destroy_module(memory)
+            memory['destroyModule'] = None
+
+        # init new elements
+        if check_module_available('initModule'):
+            modules[memory['initModule']].init_module(memory)
+            memory['initModule'] = None
+
+        # refresh
+        if check_module_available('activeModule'):
+            modules[memory['activeModule']].refresh(memory)
+
+        # redraw screen
         screen.fill(0)
-        if moduleState == "init":
-            moduleState = modules[activeModule].initModule(cache)
-        elif moduleState == "run":
-            moduleState = modules[activeModule].run(screen, moduleState, cache)
-        elif moduleState == "exit":
-            modules[activeModule].closeModule(cache)
-            if 'revertModule' in cache and cache['revertModule'] != None:
-                cache['moveToModule'] = cache['revertModule']
-                cache['revertModule'] = None
-        if 'moveToModule' in cache and cache['moveToModule'] != None:
-            activeModule = cache['moveToModule']
-            cache['moveToModule'] = None
-            moduleState = 'init'
-        #safe exit
-        if 'moveToModule' not in cache and 'revertModule' not in cache and moduleState == "exit":
-            cache['appState'] = "exit"
-        pygame.display.flip()
-        pygame.time.wait(10)
-except Exception as e:
-    print(e)
+        appSelect.draw(memory, screen)
+        if check_module_available('activeModule'):
+            modules[memory['activeModule']].draw(memory, screen)
 
-pygame.quit()
-print("cache: {}".format(cache))
+        # flip screen buffer
+        pygame.display.flip()
+        pygame.time.wait(100)
+    # finish
+    for module in modules:
+        modules[module].destroy_module(memory)
+    pygame.quit()
+
+
+def get_touch_coordinates(pyevent):
+    if pyevent.type == pygame.FINGERDOWN:
+        sx, sy = pygame.display.get_window_size()
+        return pyevent.x * sx, pyevent.y * sy
+    if pyevent.type == pygame.MOUSEBUTTONDOWN:
+        return pyevent.pos
+    raise (TypeError(
+        "getTouchXY event {} is not FINGERDOWN or MOUSEBUTTONDOWN".format(pygame.event.event_name(pyevent.type))))
+
+
+def check_module_available(module_name):
+    return module_name in memory and memory[module_name] is not None and \
+        memory[module_name] in modules and modules[memory[module_name]] is not None
+
+
+if __name__ == "__main__":
+    start()

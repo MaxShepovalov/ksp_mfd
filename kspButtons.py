@@ -1,156 +1,180 @@
 # button helper
 import pygame
-from enum import Enum
 
 DEFAULT_FONT = 'unispace bd.ttf'
+IDLE = "idle"
+PRESSED = "pressed"
 
-idleState = {
-	"button_color": (150,150,150),
-	"text_color": (0,0,0),
-	"font": DEFAULT_FONT,
-	"align": "center",
-	"alightV": "center",
-	'fixedWidth': False,
-	"size": 60
-}
-pressedState = {
-	"button_color": (150,255,150), # r b g
-	"text_color": (0,0,0), # r g b
-	"font": DEFAULT_FONT, # filename
-	"align": "center", # center, left, or right
-	"alignV": "center", # center, top, or bottom
-	'fixedWidth': False, # False, None, or int (pixel)
-	"size": 60 # int
+BLACK = (0, 0, 0)
+GREY = (50, 50, 50)
+WHITE = (255, 255, 255)
+GREEN = (15, 200, 15)
+
+default_styles = {
+    IDLE: {
+        "button_color": GREY,
+        "text_color": (0, 0, 0),
+        "font": DEFAULT_FONT,
+        "align": "center",
+        "alightV": "center",
+        'fixedWidth': False,
+        "size": 60
+    },
+    PRESSED: {
+        "button_color": GREY,  # r b g
+        "text_color": GREEN,  # r g b
+        "font": DEFAULT_FONT,  # filename
+        "align": "center",  # center, left, or right
+        "alignV": "center",  # center, top, or bottom
+        'fixedWidth': False,  # False, None, or int (pixel)
+        "size": 60  # int
+    }
 }
 
-defaultStates = {"idle":idleState, "pressed":pressedState}
 
 class KSPButton:
-	def __init__(self, x, y, w, h, value, clickable=True, state="idle", groups = set(), states = defaultStates):
-		self.rect = (x, y, w, h)
-		self.value = str(value)
-		self.state = str(state)
-		self.idlestate = str(state)
-		self.states = {**states}
-		self.groups = groups
-		self.clickable = clickable
-		for stateId in self.states:
-			btnstate = self.states[stateId]
-			if 'button_color' not in btnstate:
-				raise(KeyError("button \"{}\" state \"{}\" button_color is null".format(value, stateId)))
-			if 'text_color' not in btnstate:
-				raise(KeyError("button \"{}\" state \"{}\" text_color is null".format(value, stateId)))
-			if 'font' not in btnstate:
-				raise(KeyError("button \"{}\" state \"{}\" font is null".format(value, stateId)))
-			if 'size' not in btnstate:
-				raise(KeyError("button \"{}\" state \"{}\" size is null".format(value, stateId)))
-		if self.state not in self.states:
-			raise(ValueError("buttton \"{}\" default state {} is not set".format(value, self.state)))
+    def __init__(self, x, y, w, h, value, special=None, clickable=True, style=IDLE, groups=None, styles=None):
+        if groups is None:
+            groups = set()
+        if styles is None:
+            styles = default_styles
+        self.rect = (x, y, w, h)
+        self.value = str(value)
+        self.special = special
+        self.style_id = str(style)
+        self.idle_style_id = str(style)
+        self.styles = {**styles}
+        self.groups = groups
+        self.clickable = clickable
+        for style_id in self.styles:
+            style_obj = self.styles[style_id]
+            if 'button_color' not in style_obj:
+                raise (KeyError("button \"{}\" style_id \"{}\" button_color is null".format(value, style_id)))
+            if 'text_color' not in style_obj:
+                raise (KeyError("button \"{}\" style_id \"{}\" text_color is null".format(value, style_id)))
+            if 'font' not in style_obj:
+                raise (KeyError("button \"{}\" style_id \"{}\" font is null".format(value, style_id)))
+            if 'size' not in style_obj:
+                raise (KeyError("button \"{}\" style_id \"{}\" size is null".format(value, style_id)))
+        if self.style_id not in self.styles:
+            raise (ValueError("button \"{}\" default style_id {} is not set".format(value, self.style_id)))
 
-	def addState(self, stateid, state):
-		self.states[stateid] = state
+    def set_style(self, style_id):
+        if style_id not in self.styles:
+            raise (ValueError('button "{}" has no style "{}"'.format(self.value, style_id)))
+        self.style_id = style_id
 
-	def addStates(self, states):
-		self.states = {**self.states, **states}
+    def is_pressed(self, x_touch, y_touch):
+        x, y, w, h = self.rect
+        return self.clickable is True and x <= x_touch < (x + w) and y <= y_touch < (y + h)
 
-	def isPressed(self, xTouch, yTouch):
-		x, y, w, h = self.rect
-		return self.clickable and xTouch>=x  and xTouch<(x+w) and yTouch>=y and yTouch<(y+h)
+    def in_groups(self, groups=None):
+        if groups is None:
+            groups = set()
+        if not isinstance(groups, set):
+            raise (TypeError('"groups" should be a set'))
+        return len(groups.difference(self.groups)) == 0
 
-	def inGroups(self, groups = set()):
-		return len(groups.difference(self.groups)) == 0
 
-# find button in list by touch
-def findButtonByPoint(buttons, x, y, groups = set()):
-	for button in buttons:
-		if button.isPressed(x, y) and button.inGroups(groups):
-			return button
+# find button in list by touch XY
+def find_button_by_point(buttons, x, y, groups=None):
+    for button in buttons:
+        if button.is_pressed(x, y) and button.in_groups(groups):
+            return button
 
-def untouchAllButtons(buttons, groups = set()):
-	for button in buttons:
-		if button.inGroups(groups):
-			button.state = str(button.idlestate)
 
-def findButtonInState(buttons, state, groups = set()):
-	for button in buttons:
-		if button.state == state and button.inGroups(groups):
-			return button
+def find_button_by_style(buttons, style, groups=None):
+    for button in buttons:
+        if button.style_id == style and button.in_groups(groups):
+            return button
 
-def makeButtons(buttonsarr, buttonValuesTable, xPanel, yPanel, xWidth, yHeight, border=1, clickable=True, state = "idle", groups = set(), states = defaultStates):
-	buttonRows = len(buttonValuesTable)
-	buttonSizeY = float(yHeight)/buttonRows
-	for r in range(buttonRows):
-		buttonCols = len(buttonValuesTable[r])
-		buttonSizeX = float(xWidth)/buttonCols
-		for c in range(buttonCols):
-			xCorner = xPanel+c*buttonSizeX
-			yCorner = yPanel+r*buttonSizeY
-			buttonsarr.append(KSPButton(
-				x = xCorner+border,
-				y = yCorner+border,
-				w = buttonSizeX-border,
-				h = buttonSizeY-border,
-				value = buttonValuesTable[r][c],
-				clickable = clickable,
-				state = state,
-				groups = groups,
-				states = states)
-			)
 
-def renderText(screen, text, buttonRect, state):
-	textLines = []
-	totalHeight = 0
-	totalWidth = 0
-	bx,by,bw,bh = buttonRect
-	cx = bx + .5*(bw)
-	cy = by + .5*(bh)
-	font = pygame.font.Font(state['font'], state['size'])
-	for subtext in text.split("\n"):
-		textLines.append(font.render(subtext, False, state['text_color']))
-		_,_,tw,th =textLines[-1].get_rect()
-		totalHeight += th
-		totalWidth = max(totalWidth, tw)
-	nlines = len(textLines)
-	# sx, sy = pygame.display.get_window_size()
-	for i in range(nlines):
-		_,_,tw,th = textLines[i].get_rect()
-		tx = cx - 0.5*tw # center is default
-		ty = int(cy - 0.5*totalHeight + i*1.05*th) # center is default
-		#vertical
-		if 'alignV' in state and state['alignV'] == "top":
-			ty = by + i * 1.05*th
-		if 'alignV' in state and state['alignV'] == "bottom":
-			ty = by + bh - (nlines-i) * 1.05*th
-		#horizontal
-		if 'align' in state and state['align'] == "left":
-			if 'fixedWidth' in state and state['fixedWidth']:
-				tw = state['fixedWidth']
-			tx = max(bx, cx - .5*max(tw, totalWidth))
-		elif 'align' in state and state['align'] == "right":
-			tx = max(bx, bx + bw - tw)
-		# ignore out of button
-		if ty < by or ty > by+bh or tx > bx+bw:
-			continue
-		screen.blit(textLines[i], (tx, ty))
+def find_button_by_special(buttons, special, groups=None):
+    for button in buttons:
+        if button.special == special and button.in_groups(groups):
+            return button
 
-def drawButtons(screen, buttons):
-	for button in buttons:
-		state = button.states[button.state]
-		btnRect = pygame.draw.rect(
-			surface=screen, 
-			color=state['button_color'],
-			rect=button.rect
-		)
-		renderText(screen,
-			buttonRect = button.rect,
-			text = button.value,
-			state = state
-		)
 
-def getTouchXY(pyevent):
-	if pyevent.type == pygame.FINGERDOWN:
-		sx, sy = pygame.display.get_window_size()
-		return pyevent.x*sx, pyevent.y*sy
-	if pyevent.type == pygame.MOUSEBUTTONDOWN:
-		return pyevent.pos
-	raise(TypeError("getTouchXY event {} is not FINGERDOWN or MOUSEBUTTONDOWN".format(pygame.event.event_name(pyevent.type))))
+def find_button_by_value(buttons, value, groups=None):
+    for button in buttons:
+        if button.value == value and button.in_groups(groups):
+            return button
+
+
+def reset_all_buttons(buttons, groups=None):
+    for button in buttons:
+        if button.in_groups(groups):
+            button.style_id = str(button.idle_style_id)
+
+
+# create many buttons in bulk
+def make_buttons(btn_array, button_values, x, y, w, h, button_specials=None, border=1, clickable=True, style=IDLE,
+                 groups=None, styles=None):
+    number_rows = len(button_values)
+    button_size_y = float(h) / number_rows
+    for r in range(number_rows):
+        number_columns = len(button_values[r])
+        button_size_x = float(w) / number_columns
+        for c in range(number_columns):
+            x_btn = x + c * button_size_x
+            y_btn = y + r * button_size_y
+            special = None
+            if button_specials is not None and \
+                    len(button_values) == len(button_specials) and \
+                    len(button_values[r]) == len(button_specials[r]):
+                special = button_specials[r][c]
+            btn_array.append(KSPButton(
+                x=x_btn + border,
+                y=y_btn + border,
+                w=button_size_x - border,
+                h=button_size_y - border,
+                value=button_values[r][c],
+                special=special,
+                clickable=clickable,
+                style=style,
+                groups=groups,
+                styles=styles)
+            )
+
+
+def render_text(screen, text, rect, style):
+    text_lines = []
+    total_height = 0
+    total_width = 0
+    bx, by, bw, bh = rect
+    cx = bx + .5 * bw
+    cy = by + .5 * bh
+    font = pygame.font.Font(style['font'], style['size'])
+    for subtext in text.split("\n"):
+        text_lines.append(font.render(subtext, False, style['text_color']))
+        _, _, tw, th = text_lines[-1].get_rect()
+        total_height += th
+        total_width = max(total_width, tw)
+    # sx, sy = pygame.display.get_window_size()
+    for i in range(len(text_lines)):
+        _, _, tw, th = text_lines[i].get_rect()
+        tx = cx - 0.5 * tw  # center is default
+        ty = int(cy - 0.5 * total_height + i * 1.05 * th)  # center is default
+        # vertical
+        if 'alignV' in style and style['alignV'] == "top":
+            ty = by + i * 1.05 * th
+        if 'alignV' in style and style['alignV'] == "bottom":
+            ty = by + bh - (len(text_lines) - i) * 1.05 * th
+        # horizontal
+        if 'align' in style and style['align'] == "left":
+            if 'fixedWidth' in style and style['fixedWidth']:
+                tw = style['fixedWidth']
+            tx = max(bx, cx - .5 * max(tw, total_width))
+        elif 'align' in style and style['align'] == "right":
+            tx = max(bx, bx + bw - tw)
+        # ignore out of button
+        if ty < by or ty > by + bh or tx > bx + bw:
+            continue
+        screen.blit(text_lines[i], (tx, ty))
+
+
+def draw(screen, buttons):
+    for button in buttons:
+        style = button.styles[button.style_id]
+        pygame.draw.rect(surface=screen, color=style['button_color'], rect=button.rect)
+        render_text(screen, rect=button.rect, text=button.value, style=style)
