@@ -4,6 +4,7 @@ import appSelect
 import moduleSettings
 import moduleDevices
 import kspConnect
+import kspMessage
 
 memory = {
     "kspIp": "127.0.0.1",
@@ -19,7 +20,8 @@ memory = {
     "activeModule": None,
     "destroyModule": None,
     "initModule": None,
-    "popup_active": False
+    "popup_active": False,
+    "log_message": None
 }
 modules = {
     'appSelect': appSelect,
@@ -61,12 +63,14 @@ def start(is_full_screen):
         # refresh
         if check_module_available('activeModule'):
             modules[memory['activeModule']].refresh(memory)
+        kspMessage.refresh(memory)
 
         # redraw screen
         screen.fill(0)
         appSelect.draw(memory, screen)
         if check_module_available('activeModule'):
             modules[memory['activeModule']].draw(memory, screen)
+        kspMessage.draw(memory, screen)
 
         # flip screen buffer
         pygame.display.flip()

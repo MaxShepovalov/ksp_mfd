@@ -8,6 +8,7 @@ INACTIVE_STYLE = "inactive"  # for all when no connection
 LIST_EXP_STYLE = "listExp"  # for expand button
 HIDDEN_STYLE = "hidden"  # for anything to not show
 LIST_ITEM_STYLE = "listItem"  # for list item name
+LIST_ITEM_TOUCHED_STYLE = "listItemTouch"
 nav_width = 70
 scroll_width = 20
 jump_amount = 6
@@ -81,6 +82,15 @@ def init_module(memory):
             "alignV": "center",  # center, top, or bottom
             'fixedWidth': False,  # False, None, or int (pixel)
             "size": 20  # int
+        },
+        LIST_ITEM_TOUCHED_STYLE: {
+            "button_color": kspButtons.GREEN,  # r b g
+            "text_color": kspButtons.WHITE,  # r g b
+            "font": kspButtons.DEFAULT_FONT,  # filename
+            "align": "left",  # center, left, or right
+            "alignV": "center",  # center, top, or bottom
+            'fixedWidth': False,  # False, None, or int (pixel)
+            "size": 20  # int
         }
     }
 
@@ -145,20 +155,20 @@ def process_click(memory, x, y):
     if not memory["popup_active"] and memory["moduleDevices"]['data'] is not None:
         pressed_button = kspButtons.find_button_by_point(buttons_array, x, y)
         if pressed_button is not None:
-            pressed_button.set_style(kspButtons.PRESSED_STYLE)
-            # navigation
-            if pressed_button.special == 'jumpUp':
-                memory['moduleDevices']['row_offset'] = max(0, memory['moduleDevices']['row_offset'] - jump_amount)
-            if pressed_button.special == 'jumpDown':
-                memory['moduleDevices']['row_offset'] = min(len(memory["moduleDevices"]['view']) - list_size, memory['moduleDevices']['row_offset'] + jump_amount)
-            if pressed_button.special == 'up':
-                memory['moduleDevices']['row_offset'] = max(0, memory['moduleDevices']['row_offset'] - 1)
-            if pressed_button.special == 'down':
-                memory['moduleDevices']['row_offset'] = min(len(memory["moduleDevices"]['view']) - list_size, memory['moduleDevices']['row_offset'] + 1)
-            if pressed_button.in_groups({'nav'}):
+            if pressed_button.in_groups({'part'}):
+                pressed_button.set_style(LIST_ITEM_TOUCHED_STYLE)
+            elif pressed_button.in_groups({'nav'}):
+                pressed_button.set_style(kspButtons.PRESSED_STYLE)
+                if pressed_button.special == 'jumpUp':
+                    memory['moduleDevices']['row_offset'] = max(0, memory['moduleDevices']['row_offset'] - jump_amount)
+                if pressed_button.special == 'jumpDown':
+                    memory['moduleDevices']['row_offset'] = min(len(memory["moduleDevices"]['view']) - list_size, memory['moduleDevices']['row_offset'] + jump_amount)
+                if pressed_button.special == 'up':
+                    memory['moduleDevices']['row_offset'] = max(0, memory['moduleDevices']['row_offset'] - 1)
+                if pressed_button.special == 'down':
+                    memory['moduleDevices']['row_offset'] = min(len(memory["moduleDevices"]['view']) - list_size, memory['moduleDevices']['row_offset'] + 1)
                 memory["moduleDevices"]['state'] = 'scroll'
-            # expand
-            if pressed_button.in_groups({'exp'}):
+            elif pressed_button.in_groups({'exp'}):
                 memory["moduleDevices"]['state'] = 'recompute'
                 row = int(pressed_button.special.replace('expand', ''))
                 true_device_row = memory["moduleDevices"]['row_offset'] + row
@@ -171,7 +181,7 @@ def process_click(memory, x, y):
 
 def refresh(memory):
     if memory["moduleDevices"]['state'] == 'fetch':
-        memory["moduleDevices"]['data'] = get_krpc_data_mock()
+        memory["moduleDevices"]['data'] = get_krpc_data_mock(memory)
         memory["moduleDevices"]['state'] = 'recompute'
     elif memory["moduleDevices"]['state'] == 'recompute':
         # convert data to view
@@ -180,6 +190,8 @@ def refresh(memory):
         new_style = INACTIVE_STYLE
         if len(memory["moduleDevices"]['view']) > list_size:
             new_style = kspButtons.IDLE_STYLE
+        else:
+            memory['moduleDevices']['row_offset'] = max(0, len(memory["moduleDevices"]['view'])-list_size)
         for button in buttons_array:
             if button.in_groups({'nav'}):
                 button.idle_style_id = new_style
@@ -272,7 +284,8 @@ def update_viewable_part(memory, path='', use_char=''):
 
 
 # local MOCK {'name': 'root', 'type': 'pod', 'expanded': False, 'nodes': []}
-def get_krpc_data_mock():
+def get_krpc_data_mock(memory):
+    memory['log_message'] = "KRPC is not connected"
     return {'name': 'root', 'type': 'pod', 'expanded': False, 'nodes': [
         {'name': 'Solar1', 'type': 'solar panel', 'expanded': False, 'nodes': []},
         {'name': 'Solar1', 'type': 'solar panel', 'expanded': False, 'nodes': []},

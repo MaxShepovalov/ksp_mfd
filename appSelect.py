@@ -67,6 +67,7 @@ def process_click(memory, x, y):
                 pressed_button.set_style(kspButtons.PRESSED_STYLE)
                 memory['activeModule'] = pressed_button.special
                 memory['initModule'] = pressed_button.special
+            memory['log_message'] = "Switched to {}".format(memory['activeModule'])
             return True
     return False
 
