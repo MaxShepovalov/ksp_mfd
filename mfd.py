@@ -1,9 +1,13 @@
 import pygame
 import appSelect
 import moduleSettings
+import kspConnect
 
 memory = {
     "kspIp": "127.0.0.1",
+    "log_enabled": True,
+    # ^^^ overridable ^^^ #
+    # vvvv internal vvvv  #
     "kspConnected": False,
     "appState": "run",
     "version": "1.0",
@@ -25,6 +29,7 @@ memory["initModule"] = 'appSelect'
 def start():
     pygame.init()
     screen = pygame.display.set_mode((memory['screenX'], memory['screenY']))
+    kspConnect.log_enabled = memory["log_enabled"]
 
     while memory['appState'] == "run":
         # check events
@@ -63,6 +68,8 @@ def start():
     # finish
     for module in modules:
         modules[module].destroy_module(memory)
+    if kspConnect.is_connected():
+        kspConnect.drop(kspConnect.krpcConnection)
     pygame.quit()
 
 

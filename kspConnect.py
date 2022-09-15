@@ -1,157 +1,183 @@
 import krpc
 import math
 
-c = None
+krpcConnection = None
+log_enabled = True
+streams = []
 
-logTarget = None
-logIdx = None
 
-def kspLog(msg):
-    if logTarget != None and logIdx != None:
-        logTarget[logIdx] = "{}\n{}".format(logTarget[logIdx],msg)
-    else:
-        print(str(msg))
+def ksp_log(msg):
+    if log_enabled:
+        print(msg)
 
-def sysSetLog(logArray, idx):
-    global logTarget
-    global logIdx
-    logTarget = logArray
-    logIdx = idx
 
-def connect(url):
-    global c
-    kspLog("connecting")
-    c = krpc.connect(address=url)
-    kspLog("connected")
-    return c
+# start end connection
 
-def ls(a):
-    for method in dir(a):
-        if method[0] !="_":
-            kspLog(method)
 
-def res():
-    if isFlight():
-        av = c.space_center.active_vessel
-        kspLog("Vessel: {}".format(av.name))
-        for name in av.resources.names:
-            kspLog(" {}: {}/{}".format(name, av.resources.amount(name), av.resources.max(name)))
-    else:
-        kspLog("not in flight")
+def connect(ksp_ip):
+    global krpcConnection
+    ksp_log("connecting")
+    krpcConnection = krpc.connect(address=ksp_ip)
+    ksp_log("connected")
+    return krpcConnection
+
 
 def drop(conn):
     conn.close()
-    kspLog("disconnected")
+    ksp_log("disconnected")
     exit()
 
-streams = []
-def makeStream(value, refFrame=None, attr=None):
+
+def is_connected():
+    return krpcConnection is not None
+
+
+# API
+
+
+def make_stream(value, ref_frame=None, attr=None):
     stream = None
-    if not refFrame:
-        if not attr:
-            stream = c.add_stream(value)
+    if ref_frame is None:
+        if attr is None:
+            stream = krpcConnection.add_stream(value)
         else:
-            stream = c.add_stream(value, attr)
+            stream = krpcConnection.add_stream(value, attr)
     else:
-        stream = c.add_stream(value, refFrame)
-    if stream:
+        stream = krpcConnection.add_stream(value, ref_frame)
+    if stream is not None:
         streams.append(stream)
     return stream
 
-def dropStreams():
+
+def drop_streams():
     for s in streams:
         s.remove()
     streams.clear()
 
-def getDirection():
-    if isFlight():
-        av = c.space_center.active_vessel
+
+def is_in_flight():
+    return krpcConnection.krpc.current_game_scene == krpcConnection.krpc.GameScene.flight
+
+
+def get_direction():
+    if is_in_flight():
+        av = krpcConnection.space_center.active_vessel
         vessel_direction = av.rotation(av.surface_reference_frame)
         return vessel_direction
     else:
-        kspLog("not in flight")
-        return [0,0,0,0]
+        ksp_log("not in flight")
+        return [0, 0, 0, 0]
+
+
+def get_orbit():
+    if is_in_flight():
+        av = krpcConnection.space_center.active_vessel
+        return av.orbit
+    else:
+        ksp_log("not in flight")
+
+
+def is_targeting_vessel():
+    return krpcConnection.space_center.target_vessel is not None
+
+
+def is_targeting_port():
+    return krpcConnection.space_center.target_docking_port is not None
+
+
+def is_targeting():
+    return is_targeting_vessel() or is_targeting_port()
+
+
+# math hints
+
+
+def vector_to_angles(vx, vy, vz):
+    return math.asin(vz) * 180 / math.pi, math.atan2(vx, vy) * 180 / math.pi
+
+
+def get_pyr_rotation(obj, ref_frame):
+    qx, qy, qz, qw = obj.rotation(ref_frame)
+    roll = math.atan2(2 * qy * qw - 2 * qx * qz, 1 - 2 * qy * qy - 2 * qz * qz)
+    pitch = math.atan2(2 * qx * qw - 2 * qy * qz, 1 - 2 * qx * qx - 2 * qz * qz)
+    yaw = math.asin(2 * qx * qy + 2 * qz * qw)
+    return pitch * 180 / math.pi, yaw * 180 / math.pi, roll * 180 / math.pi
+
+
+# manual tests
+
+
+def ls(a):
+    for method in dir(a):
+        if method[0] != "_":
+            ksp_log(method)
+
+
+def resources():
+    if is_in_flight():
+        av = krpcConnection.space_center.active_vessel
+        ksp_log("Vessel: {}".format(av.name))
+        for name in av.resources.names:
+            ksp_log(" {}: {}/{}".format(name, av.resources.amount(name), av.resources.max(name)))
+    else:
+        ksp_log("not in flight")
+
 
 def parts():
-    if isFlight():
-        av = c.space_center.active_vessel
+    if is_in_flight():
+        av = krpcConnection.space_center.active_vessel
         root = av.parts.root
         stack = [(root, 1)]
         while stack:
             part, depth = stack.pop()
-            kspLog("{}{}{} - {}".format('|'*(depth-1), '\\'*(depth>1), part.tag, part.title))
+            ksp_log("{}{}{} - {}".format('|' * (depth - 1), '\\' * (depth > 1), part.tag, part.title))
             for child in part.children:
-                stack.append((child, depth+1))
+                stack.append((child, depth + 1))
     else:
-        kspLog("not in flight")
+        ksp_log("not in flight")
+
 
 def hint():
-    if isFlight():
-        av = c.space_center.active_vessel
+    if is_in_flight():
+        av = krpcConnection.space_center.active_vessel
         prevhl = None
         while True:
             for part in av.parts.all:
                 if part.highlighted and prevhl != part:
                     prevhl = part
                     for module in part.modules:
-                        kspLog(" m> {} {}".format(module.name, module.actions))
+                        ksp_log(" m> {} {}".format(module.name, module.actions))
     else:
-        kspLog("not in flight")
+        ksp_log("not in flight")
 
-def getOrbit():
-    if isFlight():
-        av = c.space_center.active_vessel
-        return av.orbit
-    else:
-        kspLog("not in flight")
 
-def isFlight():
-    return c.krpc.current_game_scene == c.krpc.GameScene.flight
-
-def isConnected():
-    return c != None
-
-def vectorToAngles(vx,vy,vz):
-    return (math.asin(vz)*180/math.pi, math.atan2(vx,vy)*180/math.pi)
-
-def getPYRRotation(obj, refFrame):
-    qx,qy,qz,qw = obj.rotation(refFrame)
-    roll  = math.atan2(2*qy*qw - 2*qx*qz, 1 - 2*qy*qy - 2*qz*qz);
-    pitch = math.atan2(2*qx*qw - 2*qy*qz, 1 - 2*qx*qx - 2*qz*qz);
-    yaw   =  math.asin(2*qx*qy + 2*qz*qw);
-    return pitch*180/math.pi, yaw*180/math.pi, roll*180/math.pi
-
-def isTargetingVessel():
-    return c.space_center.target_vessel != None or c.space_center.target_docking_port!=None
-
-def getTargetDir():
-    if not isFlight():
+def get_target_dir():
+    if not is_in_flight():
         return "Not in flight"
-    av = c.space_center.active_vessel
+    av = krpcConnection.space_center.active_vessel
     if not av:
-        return "No active vesssel"
-    tp = c.space_center.target_docking_port
+        return "No active vessel"
+    tp = krpcConnection.space_center.target_docking_port
     if not tp:
         return "Select port first"
-    x,y,z = tp.direction(av.reference_frame)
-    pitch, yaw = vectorToAngles(-x, -y, -z)
-    ATx,ATy,ATz = tp.position(av.reference_frame)
-    TAx,TAy,TAz = av.position(tp.reference_frame)
-    green = ATy > 0 and TAy > 0
-    ATdist = pow(ATx*ATx + ATy*ATy + ATz*ATz,0.5)
-    return "TRG green: {}, pitch: {:.1f}, yaw: {:.1f}, Hshift: {:.1f}, Vshift: {:.1f}, Dist {:.1f}".format(green, pitch, yaw, ATx, ATz, ATdist)
+    x, y, z = tp.direction(av.reference_frame)
+    pitch, yaw = vector_to_angles(-x, -y, -z)
+    at_x, at_y, at_z = tp.position(av.reference_frame)
+    ta_x, ta_y, ta_z = av.position(tp.reference_frame)
+    green = at_y > 0 and ta_y > 0
+    at_distance = pow(at_x * at_x + at_y * at_y + at_z * at_z, 0.5)
+    return "TRG green: {}, pitch: {:.1f}, yaw: {:.1f}, Hshift: {:.1f}, Vshift: {:.1f}, Dist {:.1f}".format(
+        green, pitch, yaw, at_x, at_distance, at_distance)
 
-def keepPrint():
+
+def keep_print():
     while True:
         try:
-            print(getTargetDir())
+            print(get_target_dir())
         except KeyboardInterrupt:
             print("Stop")
             break
     print("Done")
-
-if __name__ == "__main__":
-    connect("192.168.2.7")
 
 # get active vessel  # av = c.space_center.active_vessel
 # get orbit          # orbit = av.orbit
