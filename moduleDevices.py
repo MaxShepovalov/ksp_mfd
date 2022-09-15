@@ -9,10 +9,10 @@ LIST_EXP_STYLE = "listExp"  # for expand button
 HIDDEN_STYLE = "hidden"  # for anything to not show
 LIST_ITEM_STYLE = "listItem"  # for list item name
 nav_width = 70
-scroll_width = 30
+scroll_width = 20
 jump_amount = 6
 scroll_y_margin = 10
-expand_button_width = 30
+expand_button_width = 50
 
 
 def init_module(memory):
@@ -21,8 +21,10 @@ def init_module(memory):
     memory['moduleDevices'] = {
         'row_offset': 0,
         'view': [],
-        'expandable': [],
-        'data': None
+        'state': 'fetch',
+        'data': None,
+        'scroll_top': memory["topRowY"] + 5,
+        "scroll_height": memory["screenY"] - 2 * memory["topRowY"] - 10
     }
 
     device_styles = {
@@ -89,7 +91,7 @@ def init_module(memory):
                             buttons_view, button_specials=buttons_actions,
                             x=0, y=memory["topRowY"] + 5, border=5,
                             w=nav_width, h=memory["screenY"] - 2 * memory["topRowY"] - 10,
-                            clickable=True, styles=device_styles, groups={'nav'}
+                            clickable=True, style=INACTIVE_STYLE, styles=device_styles, groups={'nav'}
                             )
 
     # list
@@ -106,17 +108,15 @@ def init_module(memory):
                             list_expand, button_specials=list_exp_specials,
                             x=x_exp_start, y=memory["topRowY"] + 5, border=5,
                             w=expand_button_width, h=memory["screenY"] - 2 * memory["topRowY"] - 10,
-                            clickable=True, style=LIST_EXP_STYLE, styles=device_styles, groups={'exp'}
+                            clickable=False, style=INACTIVE_STYLE, styles=device_styles, groups={'exp'}
                             )
-    x_start = x_exp_start+2+expand_button_width
+    x_start = x_exp_start + 2 + expand_button_width
     kspButtons.make_buttons(buttons_array,
                             list_view, button_specials=list_specials,
                             x=x_start, y=memory["topRowY"] + 5,
-                            w=memory['screenX']-x_start, h=memory["screenY"] - 2 * memory["topRowY"] - 10,
-                            clickable=True, style=LIST_ITEM_STYLE, styles=device_styles, groups={'part'}
+                            w=memory['screenX'] - x_start, h=memory["screenY"] - 2 * memory["topRowY"] - 10,
+                            clickable=False, style=INACTIVE_STYLE, styles=device_styles, groups={'part'}
                             )
-
-    # reset all to inactive
 
     created = True
 
@@ -124,40 +124,105 @@ def init_module(memory):
 def draw(memory, screen):
     kspButtons.draw(screen, buttons_array)
     # draw scroll
-    # static line
-    screen_pad_top = memory["topRowY"] + 5
-    screen_pad_height = memory["screenY"] - 2 * memory["topRowY"] - 10
     kspButtons.draw_box(screen,
                         2 + nav_width,  # x
-                        screen_pad_top,  # y
+                        memory["topRowY"] + 5,  # y
                         5,  # width
-                        screen_pad_height,  # height
-                        kspButtons.GREY
-                        )
-
-    kspButtons.draw_box(screen,
-                        2 + nav_width + 5,  # x
-                        screen_pad_top,  # y
-                        scroll_width - 5,  # width
-                        screen_pad_height,  # height
+                        memory["screenY"] - 2 * memory["topRowY"] - 10,  # height
                         kspButtons.WHITE
                         )
+    kspButtons.draw_box(screen,
+                        2 + nav_width + 5,  # x
+                        memory['moduleDevices']['scroll_top'],  # y
+                        scroll_width - 5,  # width
+                        memory['moduleDevices']['scroll_height'],  # height
+                        kspButtons.GREY
+                        )
+    kspButtons.reset_all_buttons(buttons_array)
 
 
 def process_click(memory, x, y):
-    # kspButtons.reset_all_buttons(buttons_array)
-    if not memory["popup_active"]:
+    if not memory["popup_active"] and memory["moduleDevices"]['data'] is not None:
         pressed_button = kspButtons.find_button_by_point(buttons_array, x, y)
         if pressed_button is not None:
             pressed_button.set_style(kspButtons.PRESSED_STYLE)
-            if pressed_button.special == "exit":
-                memory['appState'] = "exit"
+            # navigation
+            if pressed_button.special == 'jumpUp':
+                memory['moduleDevices']['row_offset'] = max(0, memory['moduleDevices']['row_offset'] - jump_amount)
+            if pressed_button.special == 'jumpDown':
+                memory['moduleDevices']['row_offset'] = min(len(memory["moduleDevices"]['view']) - list_size, memory['moduleDevices']['row_offset'] + jump_amount)
+            if pressed_button.special == 'up':
+                memory['moduleDevices']['row_offset'] = max(0, memory['moduleDevices']['row_offset'] - 1)
+            if pressed_button.special == 'down':
+                memory['moduleDevices']['row_offset'] = min(len(memory["moduleDevices"]['view']) - list_size, memory['moduleDevices']['row_offset'] + 1)
+            if pressed_button.in_groups({'nav'}):
+                memory["moduleDevices"]['state'] = 'scroll'
+            # expand
+            if pressed_button.in_groups({'exp'}):
+                memory["moduleDevices"]['state'] = 'recompute'
+                row = int(pressed_button.special.replace('expand', ''))
+                true_device_row = memory["moduleDevices"]['row_offset'] + row
+                path = memory["moduleDevices"]['view'][true_device_row]['path']
+                raw_data = get_dict_element_by_path(memory["moduleDevices"]['data'], path)
+                raw_data['expanded'] = not raw_data['expanded']
             return True
     return False
 
 
 def refresh(memory):
-    pass
+    if memory["moduleDevices"]['state'] == 'fetch':
+        memory["moduleDevices"]['data'] = get_krpc_data_mock()
+        memory["moduleDevices"]['state'] = 'recompute'
+    elif memory["moduleDevices"]['state'] == 'recompute':
+        # convert data to view
+        memory["moduleDevices"]['view'] = []
+        update_viewable_part(memory)
+        new_style = INACTIVE_STYLE
+        if len(memory["moduleDevices"]['view']) > list_size:
+            new_style = kspButtons.IDLE_STYLE
+        for button in buttons_array:
+            if button.in_groups({'nav'}):
+                button.idle_style_id = new_style
+                button.style = new_style
+                button.clickable = new_style == kspButtons.IDLE_STYLE
+        memory["moduleDevices"]['state'] = 'scroll'
+    elif memory["moduleDevices"]['state'] == 'scroll':
+        # get data for screen
+        all_parts_count = len(memory["moduleDevices"]['view'])
+        for row in range(list_size):
+            ui_row = kspButtons.find_button_by_special(buttons_array, "list{}".format(row))
+            ui_expand = kspButtons.find_button_by_special(buttons_array, "expand{}".format(row))
+            true_device_row = memory["moduleDevices"]['row_offset'] + row
+            if true_device_row >= all_parts_count:
+                ui_row.idle_style_id = HIDDEN_STYLE
+                ui_row.style = HIDDEN_STYLE
+                ui_row.clickable = False
+                ui_expand.idle_style_id = HIDDEN_STYLE
+                ui_expand.style = HIDDEN_STYLE
+                ui_expand.clickable = False
+            else:
+                ui_row.value = memory["moduleDevices"]['view'][true_device_row]['show']
+                ui_row.idle_style_id = LIST_ITEM_STYLE
+                ui_row.style = LIST_ITEM_STYLE
+                ui_row.clickable = True
+                if memory["moduleDevices"]['view'][true_device_row]['expandable']:
+                    if memory["moduleDevices"]['view'][true_device_row]['expanded']:
+                        ui_expand.value = 'V'
+                    else:
+                        ui_expand.value = '>'
+                    ui_expand.idle_style_id = LIST_EXP_STYLE
+                    ui_expand.style = LIST_EXP_STYLE
+                    ui_expand.clickable = True
+                else:
+                    ui_expand.idle_style_id = HIDDEN_STYLE
+                    ui_expand.style = HIDDEN_STYLE
+                    ui_expand.clickable = False
+        scroll_full_height = memory["screenY"] - 2 * memory["topRowY"] - 10
+        top_idx = memory["moduleDevices"]['row_offset']
+        memory["moduleDevices"]['scroll_top'] = memory["topRowY"] + 5 + int(top_idx * scroll_full_height * 1.0 / all_parts_count)
+        top_idx = min(all_parts_count, list_size + top_idx)
+        memory["moduleDevices"]['scroll_height'] = int(top_idx * scroll_full_height * 1.0 / all_parts_count)
+        memory["moduleDevices"]['state'] = 'idle'
 
 
 def destroy_module(memory):
@@ -166,3 +231,62 @@ def destroy_module(memory):
     buttons_array.clear()
     if 'moduleDevices' in memory:
         del memory['moduleDevices']
+
+
+def get_dict_element_by_path(data, path):
+    if len(path) == 0 or path == '/':
+        return data
+    fields = path.split('/')
+    if isinstance(data, list):
+        f = int(fields[0])
+        return get_dict_element_by_path(data[f], '/'.join(fields[1:]))
+    else:
+        return get_dict_element_by_path(data[fields[0]], '/'.join(fields[1:]))
+
+
+def update_viewable_part(memory, path='', use_char=''):
+    try:
+        tabulation = max(0, path.count('nodes')-1) * '-'
+        part = get_dict_element_by_path(memory["moduleDevices"]['data'], path)
+        view_name = "{}{}{} - {}".format(tabulation, use_char, part['name'], part['type'])
+        memory["moduleDevices"]['view'].append({
+            'show': view_name,
+            'path': path,
+            'expandable': 'nodes' in part and part['nodes'] is not None and len(part['nodes']) > 0,
+            'expanded': part['expanded']
+        })
+        if part['expanded']:
+            for p in range(len(part['nodes'])):
+                update_viewable_part(memory, path='{}nodes/{}/'.format(path, p), use_char='\\')
+            # update_viewable_part(memory, path='{}nodes/{}/'.format(path, len(part['nodes']) - 1), use_char='└')
+    except TypeError or KeyError as e:
+        print("Error: path={}".format(path))
+        raise e
+
+
+# local MOCK {'name': 'root', 'type': 'pod', 'expanded': False, 'nodes': []}
+def get_krpc_data_mock():
+    return {'name': 'root', 'type': 'pod', 'expanded': False, 'nodes': [
+        {'name': 'Solar1', 'type': 'solar panel', 'expanded': False, 'nodes': []},
+        {'name': 'Solar1', 'type': 'solar panel', 'expanded': False, 'nodes': []},
+        {'name': 'LegFront', 'type': 'Landing leg', 'expanded': False, 'nodes': []},
+        {'name': 'BTR_400', 'type': 'Battery', 'expanded': False, 'nodes': [
+            {'name': 'Rockomax001', 'type': 'Fuel Tank', 'expanded': False, 'nodes': [
+                {'name': 'Skipper', 'type': 'Engine', 'expanded': False, 'nodes': []},
+                {'name': 'RodR', 'type': 'Structural', 'expanded': False, 'nodes': [
+                    {'name': 'DockR', 'type': 'Docking Port', 'expanded': False, 'nodes': []},
+                    {'name': 'Headlamp', 'type': 'Light', 'expanded': False, 'nodes': []},
+                ]},
+                {'name': 'RodL', 'type': 'Structural', 'expanded': False, 'nodes': [
+                    {'name': 'DockL', 'type': 'Docking Port', 'expanded': False, 'nodes': []},
+                    {'name': 'Headlamp', 'type': 'Light', 'expanded': False, 'nodes': []},
+                ]},
+                {'name': 'MedLeg', 'type': 'Landing leg', 'expanded': False, 'nodes': []},
+                {'name': 'MedLeg', 'type': 'Landing leg', 'expanded': False, 'nodes': []},
+            ]},
+            {'name': 'RCS container', 'type': 'Fuel Tank', 'expanded': False, 'nodes': []}
+        ]},
+        {'name': 'Cone', 'type': 'Structural', 'expanded': False, 'nodes': [
+            {'name': 'RD-00', 'type': 'Antenna', 'expanded': False, 'nodes': []},
+        ]},
+    ]}
