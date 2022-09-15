@@ -2,8 +2,8 @@
 import pygame
 
 DEFAULT_FONT = 'unispace bd.ttf'
-IDLE = "idle"
-PRESSED = "pressed"
+IDLE_STYLE = "idle"
+PRESSED_STYLE = "pressed"
 
 BLACK = (0, 0, 0)
 GREY = (50, 50, 50)
@@ -11,16 +11,16 @@ WHITE = (255, 255, 255)
 GREEN = (15, 200, 15)
 
 default_styles = {
-    IDLE: {
+    IDLE_STYLE: {
         "button_color": GREY,
-        "text_color": (0, 0, 0),
+        "text_color": WHITE,
         "font": DEFAULT_FONT,
         "align": "center",
         "alightV": "center",
         'fixedWidth': False,
         "size": 60
     },
-    PRESSED: {
+    PRESSED_STYLE: {
         "button_color": GREY,  # r b g
         "text_color": GREEN,  # r g b
         "font": DEFAULT_FONT,  # filename
@@ -33,7 +33,7 @@ default_styles = {
 
 
 class KSPButton:
-    def __init__(self, x, y, w, h, value, special=None, clickable=True, style=IDLE, groups=None, styles=None):
+    def __init__(self, x, y, w, h, value, special=None, clickable=True, style=IDLE_STYLE, groups=None, styles=None):
         if groups is None:
             groups = set()
         if styles is None:
@@ -108,13 +108,13 @@ def reset_all_buttons(buttons, groups=None):
 
 
 # create many buttons in bulk
-def make_buttons(btn_array, button_values, x, y, w, h, button_specials=None, border=1, clickable=True, style=IDLE,
+def make_buttons(btn_array, button_values, x, y, w, h, button_specials=None, border=1, clickable=True, style=IDLE_STYLE,
                  groups=None, styles=None):
     number_rows = len(button_values)
-    button_size_y = float(h) / number_rows
+    button_size_y = float(h-border) / number_rows
     for r in range(number_rows):
         number_columns = len(button_values[r])
-        button_size_x = float(w) / number_columns
+        button_size_x = float(w-border) / number_columns
         for c in range(number_columns):
             x_btn = x + c * button_size_x
             y_btn = y + r * button_size_y
@@ -140,7 +140,6 @@ def make_buttons(btn_array, button_values, x, y, w, h, button_specials=None, bor
 def render_text(screen, text, rect, style):
     text_lines = []
     total_height = 0
-    total_width = 0
     bx, by, bw, bh = rect
     cx = bx + .5 * bw
     cy = by + .5 * bh
@@ -149,7 +148,6 @@ def render_text(screen, text, rect, style):
         text_lines.append(font.render(subtext, False, style['text_color']))
         _, _, tw, th = text_lines[-1].get_rect()
         total_height += th
-        total_width = max(total_width, tw)
     # sx, sy = pygame.display.get_window_size()
     for i in range(len(text_lines)):
         _, _, tw, th = text_lines[i].get_rect()
@@ -164,7 +162,7 @@ def render_text(screen, text, rect, style):
         if 'align' in style and style['align'] == "left":
             if 'fixedWidth' in style and style['fixedWidth']:
                 tw = style['fixedWidth']
-            tx = max(bx, cx - .5 * max(tw, total_width))
+            tx = bx
         elif 'align' in style and style['align'] == "right":
             tx = max(bx, bx + bw - tw)
         # ignore out of button
@@ -178,3 +176,7 @@ def draw(screen, buttons):
         style = button.styles[button.style_id]
         pygame.draw.rect(surface=screen, color=style['button_color'], rect=button.rect)
         render_text(screen, rect=button.rect, text=button.value, style=style)
+
+
+def draw_box(screen, x, y, w, h, color):
+    pygame.draw.rect(surface=screen, color=color, rect=(x, y, w, h))

@@ -19,7 +19,7 @@ def init_module(memory):
     )
     not_a_button = kspButtons.find_button_by_special(buttons_array, "statusMessage")
     not_a_button.clickable = False
-    not_a_button.styles[kspButtons.IDLE] = {
+    not_a_button.styles[kspButtons.IDLE_STYLE] = {
         "button_color": kspButtons.BLACK,
         "text_color": kspButtons.WHITE,
         "font": kspButtons.DEFAULT_FONT,
@@ -43,7 +43,7 @@ def process_click(memory, x, y):
     if not memory["popup_active"]:
         pressed_button = kspButtons.find_button_by_point(buttons_array, x, y)
         if pressed_button is not None:
-            pressed_button.set_style(kspButtons.PRESSED)
+            pressed_button.set_style(kspButtons.PRESSED_STYLE)
             if pressed_button.special == "exit":
                 memory['appState'] = "exit"
             return True

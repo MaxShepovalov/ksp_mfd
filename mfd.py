@@ -1,6 +1,7 @@
 import pygame
 import appSelect
 import moduleSettings
+import moduleDevices
 import kspConnect
 
 memory = {
@@ -21,7 +22,8 @@ memory = {
 }
 modules = {
     'appSelect': appSelect,
-    'moduleSettings': moduleSettings
+    'moduleSettings': moduleSettings,
+    'moduleDevices': moduleDevices
 }
 memory["initModule"] = 'appSelect'
 
