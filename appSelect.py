@@ -73,7 +73,12 @@ def process_click(memory, x, y):
 
 
 def refresh(memory):
-    pass
+    if memory['activeModule'] is not None:
+        tab = kspButtons.find_button_by_special(buttons_array, memory['activeModule'])
+        if tab is not None:
+            kspButtons.reset_all_buttons(buttons_array)
+            tab.set_style(kspButtons.PRESSED_STYLE)
+
 
 
 def destroy_module(memory):

@@ -5,6 +5,7 @@ import moduleSettings
 import moduleDevices
 import kspConnect
 import kspMessage
+import moduleInputIP
 
 memory = {
     "kspIp": "127.0.0.1",
@@ -26,7 +27,8 @@ memory = {
 modules = {
     'appSelect': appSelect,
     'moduleSettings': moduleSettings,
-    'moduleDevices': moduleDevices
+    'moduleDevices': moduleDevices,
+    'moduleInputIP': moduleInputIP
 }
 memory["initModule"] = 'appSelect'
 
@@ -61,6 +63,7 @@ def start(is_full_screen):
             memory['initModule'] = None
 
         # refresh
+        appSelect.refresh(memory)
         if check_module_available('activeModule'):
             modules[memory['activeModule']].refresh(memory)
         kspMessage.refresh(memory)

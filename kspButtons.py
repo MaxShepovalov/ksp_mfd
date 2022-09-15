@@ -101,6 +101,14 @@ def find_button_by_value(buttons, value, groups=None):
             return button
 
 
+def find_all_by_groups(buttons, groups):
+    result = []
+    for button in buttons:
+        if button.in_groups(groups):
+            result.append(button)
+    return result
+
+
 def reset_all_buttons(buttons, groups=None):
     for button in buttons:
         if button.in_groups(groups):

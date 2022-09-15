@@ -1,4 +1,5 @@
 import kspButtons
+import kspConnect
 
 buttons_array = []
 created = False
@@ -46,6 +47,19 @@ def process_click(memory, x, y):
             pressed_button.set_style(kspButtons.PRESSED_STYLE)
             if pressed_button.special == "exit":
                 memory['appState'] = "exit"
+            elif pressed_button.special == "ip":
+                memory['destroyModule'] = 'moduleSettings'
+                memory['activeModule'] = 'moduleInputIP'
+                memory['initModule'] = 'moduleInputIP'
+            elif pressed_button.special == "connect":
+                if kspConnect.is_connected():
+                    kspConnect.drop(kspConnect.krpcConnection)
+                c = kspConnect.connect(memory['kspIp'])
+                if c is not None:
+                    memory["kspConnected"] = True
+                    memory["log_message"] = "Connected"
+                    not_a_button = kspButtons.find_button_by_special(buttons_array, "statusMessage")
+                    not_a_button.value = connect_status_message[memory['kspConnected']]
             return True
     return False
 

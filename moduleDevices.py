@@ -1,4 +1,5 @@
 import kspButtons
+import kspConnect
 
 buttons_array = []
 created = False
@@ -181,8 +182,11 @@ def process_click(memory, x, y):
 
 def refresh(memory):
     if memory["moduleDevices"]['state'] == 'fetch':
-        memory["moduleDevices"]['data'] = get_krpc_data_mock(memory)
-        memory["moduleDevices"]['state'] = 'recompute'
+        memory["moduleDevices"]['data'], memory['log_message'] = get_krpc_data(memory)
+        if memory["moduleDevices"]['data'] is not None:
+            memory["moduleDevices"]['state'] = 'recompute'
+        else:
+            memory["moduleDevices"]['state'] = 'idle'
     elif memory["moduleDevices"]['state'] == 'recompute':
         # convert data to view
         memory["moduleDevices"]['view'] = []
@@ -190,12 +194,14 @@ def refresh(memory):
         new_style = INACTIVE_STYLE
         if len(memory["moduleDevices"]['view']) > list_size:
             new_style = kspButtons.IDLE_STYLE
+            if memory['moduleDevices']['row_offset']+list_size > len(memory["moduleDevices"]['view']):
+                memory['moduleDevices']['row_offset'] = len(memory["moduleDevices"]['view']) - list_size
         else:
-            memory['moduleDevices']['row_offset'] = max(0, len(memory["moduleDevices"]['view'])-list_size)
+            memory['moduleDevices']['row_offset'] = 0
         for button in buttons_array:
             if button.in_groups({'nav'}):
                 button.idle_style_id = new_style
-                button.style = new_style
+                button.set_style(new_style)
                 button.clickable = new_style == kspButtons.IDLE_STYLE
         memory["moduleDevices"]['state'] = 'scroll'
     elif memory["moduleDevices"]['state'] == 'scroll':
@@ -207,29 +213,29 @@ def refresh(memory):
             true_device_row = memory["moduleDevices"]['row_offset'] + row
             if true_device_row >= all_parts_count:
                 ui_row.idle_style_id = HIDDEN_STYLE
-                ui_row.style = HIDDEN_STYLE
+                ui_row.set_style(HIDDEN_STYLE)
                 ui_row.clickable = False
                 ui_expand.idle_style_id = HIDDEN_STYLE
-                ui_expand.style = HIDDEN_STYLE
+                ui_expand.set_style(HIDDEN_STYLE)
                 ui_expand.clickable = False
             else:
                 ui_row.value = memory["moduleDevices"]['view'][true_device_row]['show']
                 ui_row.idle_style_id = LIST_ITEM_STYLE
-                ui_row.style = LIST_ITEM_STYLE
+                ui_row.set_style(LIST_ITEM_STYLE)
                 ui_row.clickable = True
                 if memory["moduleDevices"]['view'][true_device_row]['expandable']:
                     if memory["moduleDevices"]['view'][true_device_row]['expanded']:
                         ui_expand.value = 'V'
                         ui_expand.idle_style_id = LIST_EXP_STYLE
-                        ui_expand.style = LIST_EXP_STYLE
+                        ui_expand.set_style(LIST_EXP_STYLE)
                     else:
                         ui_expand.value = '>'
                         ui_expand.idle_style_id = kspButtons.IDLE_STYLE
-                        ui_expand.style = kspButtons.IDLE_STYLE
+                        ui_expand.set_style(kspButtons.IDLE_STYLE)
                     ui_expand.clickable = True
                 else:
                     ui_expand.idle_style_id = HIDDEN_STYLE
-                    ui_expand.style = HIDDEN_STYLE
+                    ui_expand.set_style(HIDDEN_STYLE)
                     ui_expand.clickable = False
         scroll_full_height = memory["screenY"] - 2 * memory["topRowY"] - 10
         top_idx = memory["moduleDevices"]['row_offset']
@@ -284,29 +290,9 @@ def update_viewable_part(memory, path='', use_char=''):
 
 
 # local MOCK {'name': 'root', 'type': 'pod', 'expanded': False, 'nodes': []}
-def get_krpc_data_mock(memory):
-    memory['log_message'] = "KRPC is not connected"
-    return {'name': 'root', 'type': 'pod', 'expanded': False, 'nodes': [
-        {'name': 'Solar1', 'type': 'solar panel', 'expanded': False, 'nodes': []},
-        {'name': 'Solar1', 'type': 'solar panel', 'expanded': False, 'nodes': []},
-        {'name': 'LegFront', 'type': 'Landing leg', 'expanded': False, 'nodes': []},
-        {'name': 'BTR_400', 'type': 'Battery', 'expanded': False, 'nodes': [
-            {'name': 'Rockomax001', 'type': 'Fuel Tank', 'expanded': False, 'nodes': [
-                {'name': 'Skipper', 'type': 'Engine', 'expanded': False, 'nodes': []},
-                {'name': 'RodR', 'type': 'Structural', 'expanded': False, 'nodes': [
-                    {'name': 'DockR', 'type': 'Docking Port', 'expanded': False, 'nodes': []},
-                    {'name': 'Headlamp', 'type': 'Light', 'expanded': False, 'nodes': []},
-                ]},
-                {'name': 'RodL', 'type': 'Structural', 'expanded': False, 'nodes': [
-                    {'name': 'DockL', 'type': 'Docking Port', 'expanded': False, 'nodes': []},
-                    {'name': 'Headlamp', 'type': 'Light', 'expanded': False, 'nodes': []},
-                ]},
-                {'name': 'MedLeg', 'type': 'Landing leg', 'expanded': False, 'nodes': []},
-                {'name': 'MedLeg', 'type': 'Landing leg', 'expanded': False, 'nodes': []},
-            ]},
-            {'name': 'RCS container', 'type': 'Fuel Tank', 'expanded': False, 'nodes': []}
-        ]},
-        {'name': 'Cone', 'type': 'Structural', 'expanded': False, 'nodes': [
-            {'name': 'RD-00', 'type': 'Antenna', 'expanded': False, 'nodes': []},
-        ]},
-    ]}
+def get_krpc_data(memory):
+    if memory['kspConnected'] is True:
+        return kspConnect.get_part_list()
+    else:
+        return None, "KRPC is not connected"
+

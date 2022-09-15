@@ -25,7 +25,6 @@ def connect(ksp_ip):
 def drop(conn):
     conn.close()
     ksp_log("disconnected")
-    exit()
 
 
 def is_connected():
@@ -89,7 +88,32 @@ def is_targeting():
     return is_targeting_vessel() or is_targeting_port()
 
 
+def get_part_list():
+    # {'name': 'root', 'type': 'pod', 'expanded': False, 'nodes': []}
+    if is_in_flight():
+        av = krpcConnection.space_center.active_vessel
+        root = av.parts.root
+        data = part_to_data(root)
+        return data, "Received data"
+    else:
+        return None, "Not in flight"
+
+
 # math hints
+
+
+def part_to_data(part):
+    data = {
+        'name': str(part.title),
+        'type': str(part.name),
+        'expanded': False,
+        'part': part,
+        'nodes': []
+    }
+    if len(part.children) > 0:
+        for connected in part.children:
+            data['nodes'].append(part_to_data(connected))
+    return data
 
 
 def vector_to_angles(vx, vy, vz):
