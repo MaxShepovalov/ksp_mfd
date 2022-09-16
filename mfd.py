@@ -9,6 +9,8 @@ import kspConnect
 import kspMessage
 import moduleInputIP
 
+# mod from https://github.com/kylewill0725/krpc/releases/tag/0.4.9
+
 memory = {
     "kspIp": "127.0.0.1",
     "log_enabled": True,
