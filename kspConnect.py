@@ -88,29 +88,50 @@ def is_targeting():
     return is_targeting_vessel() or is_targeting_port()
 
 
-def get_part_list():
-    # {'name': 'root', 'type': 'pod', 'expanded': False, 'nodes': []}
+def get_part_list(filter=None):
     if is_in_flight():
         av = krpcConnection.space_center.active_vessel
-        root = av.parts.root
-        data = part_to_data(root)
-        return data, "Received data"
+        if filter is None:
+            root = av.parts.root
+            data = part_to_data(root, recurse=True)
+            return [data], "Received data"
+        elif filter in get_part_filters():
+            view = []
+            for part in eval("av.parts.{}".format(filter)):
+                view.append(part_to_data(part, recurse=False))
+            return view, "Received data for '{}'".format(filter)
+        else:
+            return None, "Invalid filter '{}'".format(filter)
     else:
         return None, "Not in flight"
+
+
+def get_part_filters():
+    filters = []
+    if is_in_flight():
+        av = krpcConnection.space_center.active_vessel
+        for method in dir(av.parts):
+            if method[0] != "_" and isinstance(eval("av.parts.{}".format(method)), list):
+                filters.append(method)
+    return filters
 
 
 # math hints
 
 
-def part_to_data(part):
+def part_to_data(part, recurse=True):
+    # data: {'name': 'root', 'type': 'pod', 'expanded': False, 'nodes': []}
+    view_part = part
+    if not isinstance(part, krpcConnection.space_center.Part) and 'part' in dir(part):
+        view_part = part.part
     data = {
-        'name': str(part.title),
-        'type': str(part.name),
+        'name': str(view_part.title),
+        'type': str(view_part.name),
         'expanded': False,
         'part': part,
         'nodes': []
     }
-    if len(part.children) > 0:
+    if recurse is True and len(part.children) > 0:
         for connected in part.children:
             data['nodes'].append(part_to_data(connected))
     return data
@@ -134,7 +155,7 @@ def get_pyr_rotation(obj, ref_frame):
 def ls(a):
     for method in dir(a):
         if method[0] != "_":
-            ksp_log(method)
+            ksp_log("{} {}".format(type(eval("a.{}".format(method))), method))
 
 
 def resources():

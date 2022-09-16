@@ -1,3 +1,5 @@
+import json
+import os.path
 import sys
 import pygame
 import appSelect
@@ -10,6 +12,7 @@ import moduleInputIP
 memory = {
     "kspIp": "127.0.0.1",
     "log_enabled": True,
+    "autoConnect": False,
     # ^^^ overridable ^^^ #
     # vvvv internal vvvv  #
     "kspConnected": False,
@@ -104,7 +107,23 @@ def check_module_available(module_name):
 if __name__ == "__main__":
     inputArgs = [] + sys.argv
     full_screen = False
+    if os.path.isfile("config.txt"):
+        with open("config.txt", "r") as config_input:
+            j = json.loads(config_input.read())
+            if 'kspIp' in j:
+                memory['kspIp'] = j["kspIp"]
+            if 'autoConnect' in j:
+                memory['autoConnect'] = j["autoConnect"]
+            if 'log_enabled' in j:
+                memory['log_enabled'] = j["log_enabled"]
     if "fullscreen" in inputArgs:
         inputArgs.remove("fullscreen")
         full_screen = True
     start(full_screen)
+
+    with open("config.txt", "w") as config_out:
+        config_out.write(json.dumps({
+            "kspIp": memory["kspIp"],
+            "autoConnect": memory["autoConnect"],
+            "log_enabled": memory["log_enabled"]
+        }))

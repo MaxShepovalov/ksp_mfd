@@ -5,3 +5,4 @@
 *.pyc
 .idea/
 old/
+config.txt
