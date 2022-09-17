@@ -1,30 +1,184 @@
+import threading
+import traceback
+
 import krpc
 import math
+import time
 
 krpcConnection = None
 log_enabled = True
 streams = []
 
+thread = None
+thread_active = True
+thread_wait = 0.1
+request_id = 0
+request_queue = []
+request_result = {}
+request_agents = {}
 
-def ksp_log(msg):
+
+def __ksp_log(msg):
     if log_enabled:
-        print(msg)
+        tm = time.localtime()
+        tm_str = "{}-{}-{}T{}:{}:{}".format(tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec)
+        print("{} kspConnect:{}".format(tm_str, msg))
 
+
+# async buffer
+
+
+def queue_stop_thread():
+    queue_add_request(__stop_loop_async)
+
+
+def queue_add_request(method, data=None):
+    global request_id
+    request_id += 1
+    request_queue.append((request_id, method, data))
+    __ksp_log("New request #{} for {}".format(request_id, method.__name__))
+    return request_id
+
+
+def queue_save_result(reference_id, data):
+    if data is None:
+        raise ValueError('Request #{}. Queue result cannot be None'.format(reference_id))
+    request_result[reference_id] = data
+    __ksp_log("Request #{} complete".format(reference_id))
+    for k in range(len(request_queue)):
+        queue_id, _, _ = request_queue[k]
+        if queue_id == reference_id:
+            del request_queue[k]
+            break
+
+
+def queue_get_result(reference_id):
+    if reference_id in request_result:
+        return request_result.pop(reference_id)
+    else:
+        return None
+
+
+def __get_request():
+    if len(request_queue) > 0:
+        return request_queue[0]
+    else:
+        return None
+
+
+def __async_loop():
+    __ksp_log("Async loop started")
+    while thread_active:
+        task = __get_request()
+        if task is not None:
+            ref_id, method, data = task
+            __ksp_log("Async start request #{}".format(ref_id))
+            try:
+                queue_save_result(ref_id, __call_method(method, data))
+            except Exception as e:
+                __ksp_log("Async error for request #{}\n{}".format(ref_id, traceback.format_exc()))
+                queue_save_result(ref_id, e)
+        else:
+            time.sleep(thread_wait)
+    __ksp_log("Async loop stopped")
+
+
+def __call_method(method, data):
+    if method is web_connect:
+        result = __call_method_one_param(web_connect, data, 'kspIp', "connect expects kspIp")
+    elif method is web_drop:
+        result = __call_method_one_param(web_drop, data, 'conn', "drop expects conn")
+    elif method is web_is_in_flight:
+        result = web_is_in_flight()
+    elif method is web_get_direction:
+        result = web_get_direction()
+    elif method is web_get_orbit:
+        result = web_get_orbit()
+    elif method is web_is_targeting_vessel:
+        result = web_is_targeting_vessel()
+    elif method is web_is_targeting_port:
+        result = web_is_targeting_port()
+    elif method is web_is_targeting:
+        result = web_is_targeting()
+    elif method is web_get_part_list:
+        if data is None:
+            result = web_get_part_list(filter=None)
+        else:
+            result = __call_method_one_param(web_get_part_list, data, 'filter', "get_part_list expects filter")
+    elif method is web_get_part_filters:
+        result = web_get_part_filters()
+    elif method is __stop_loop_async:
+        result = __stop_loop_async()
+    else:
+        raise KeyError('Method {} is not supported in queue'.format(method))
+    return result
+
+
+def __call_method_one_param(method, data, param, error_msg):
+    if data is not None and param in data:
+        return method(data[param])
+    else:
+        raise ValueError(error_msg)
+
+
+def queue_agent_add_action(agent, ref_id, handler):
+    if agent not in request_agents:
+        request_agents[agent] = []
+    request_agents[agent].append((ref_id, handler))
+
+
+def queue_agent_scan_requests(memory, agent):
+    if agent in request_agents:
+        still_wait_requests = []
+        for request_idx in range(len(request_agents[agent])):
+            ref_id, handler = request_agents[agent][request_idx]
+            result = queue_get_result(ref_id)
+            if result is not None:
+                if isinstance(result, Exception):
+                    memory["log_message"] = "Error: {}".format(result)
+                else:
+                    handler(memory, result)
+            else:
+                still_wait_requests.append(request_agents[agent][request_idx])
+        request_agents[agent].clear()
+        request_agents[agent].extend(still_wait_requests)
+        if len(request_agents[agent]) == 0:
+            del request_agents[agent]
 
 # start end connection
 
 
-def connect(ksp_ip):
+def start_thread():
+    global thread_active
+    global thread
+    thread_active = True
+    thread = threading.Thread(target=__async_loop)
+    thread.start()
+
+
+def __stop_loop_async():
+    global thread_active
+    thread_active = False
+    return 'stopped'
+
+def stop_thread():
+    __stop_loop_async()
+    if isinstance(thread, threading.Thread):
+        thread.join(3)
+
+
+def web_connect(ksp_ip):
     global krpcConnection
-    ksp_log("connecting")
+    __ksp_log("connecting")
     krpcConnection = krpc.connect(address=ksp_ip)
-    ksp_log("connected")
-    return krpcConnection
+    __ksp_log("connected")
+    return "connected"
 
 
-def drop(conn):
+def web_drop(conn):
     conn.close()
-    ksp_log("disconnected")
+    __ksp_log("disconnected")
+    return "disconnected"
 
 
 def is_connected():
@@ -34,7 +188,7 @@ def is_connected():
 # API
 
 
-def make_stream(value, ref_frame=None, attr=None):
+def web_make_stream(value, ref_frame=None, attr=None):
     stream = None
     if ref_frame is None:
         if attr is None:
@@ -48,54 +202,60 @@ def make_stream(value, ref_frame=None, attr=None):
     return stream
 
 
-def drop_streams():
+def web_drop_streams():
     for s in streams:
         s.remove()
     streams.clear()
 
 
-def is_in_flight():
+def web_is_in_flight():
+    if krpcConnection is None:
+        return ConnectionError("Not connected to KRPC")
     return krpcConnection.krpc.current_game_scene == krpcConnection.krpc.GameScene.flight
 
 
-def get_direction():
-    if is_in_flight():
+def web_get_direction():
+    if web_is_in_flight():
         av = krpcConnection.space_center.active_vessel
         vessel_direction = av.rotation(av.surface_reference_frame)
         return vessel_direction
     else:
-        ksp_log("not in flight")
+        __ksp_log("not in flight")
         return [0, 0, 0, 0]
 
 
-def get_orbit():
-    if is_in_flight():
+def web_get_orbit():
+    if web_is_in_flight():
         av = krpcConnection.space_center.active_vessel
         return av.orbit
     else:
-        ksp_log("not in flight")
+        __ksp_log("not in flight")
 
 
-def is_targeting_vessel():
+def web_is_targeting_vessel():
+    if krpcConnection is None:
+        return ConnectionError("Not connected to KRPC")
     return krpcConnection.space_center.target_vessel is not None
 
 
-def is_targeting_port():
+def web_is_targeting_port():
+    if krpcConnection is None:
+        return ConnectionError("Not connected to KRPC")
     return krpcConnection.space_center.target_docking_port is not None
 
 
-def is_targeting():
-    return is_targeting_vessel() or is_targeting_port()
+def web_is_targeting():
+    return web_is_targeting_vessel() or web_is_targeting_port()
 
 
-def get_part_list(filter=None):
-    if is_in_flight():
+def web_get_part_list(filter=None):
+    if web_is_in_flight():
         av = krpcConnection.space_center.active_vessel
         if filter is None:
             root = av.parts.root
             data = part_to_data(root, recurse=True)
             return [data], "Received data"
-        elif filter in get_part_filters():
+        elif filter in web_get_part_filters():
             view = []
             for part in eval("av.parts.{}".format(filter)):
                 view.append(part_to_data(part, recurse=False))
@@ -106,9 +266,9 @@ def get_part_list(filter=None):
         return None, "Not in flight"
 
 
-def get_part_filters():
+def web_get_part_filters():
     filters = []
-    if is_in_flight():
+    if web_is_in_flight():
         av = krpcConnection.space_center.active_vessel
         for method in dir(av.parts):
             if method[0] != "_" and isinstance(eval("av.parts.{}".format(method)), list):
@@ -120,6 +280,8 @@ def get_part_filters():
 
 
 def part_to_data(part, recurse=True):
+    if krpcConnection is None:
+        return ConnectionError("Not connected to KRPC")
     # data: {'name': 'root', 'type': 'pod', 'expanded': False, 'nodes': []}
     view_part = part
     if not isinstance(part, krpcConnection.space_center.Part) and 'part' in dir(part):
@@ -155,35 +317,35 @@ def get_pyr_rotation(obj, ref_frame):
 def ls(a):
     for method in dir(a):
         if method[0] != "_":
-            ksp_log("{} {}".format(type(eval("a.{}".format(method))), method))
+            __ksp_log("{} {}".format(type(eval("a.{}".format(method))), method))
 
 
 def resources():
-    if is_in_flight():
+    if web_is_in_flight():
         av = krpcConnection.space_center.active_vessel
-        ksp_log("Vessel: {}".format(av.name))
+        __ksp_log("Vessel: {}".format(av.name))
         for name in av.resources.names:
-            ksp_log(" {}: {}/{}".format(name, av.resources.amount(name), av.resources.max(name)))
+            __ksp_log(" {}: {}/{}".format(name, av.resources.amount(name), av.resources.max(name)))
     else:
-        ksp_log("not in flight")
+        __ksp_log("not in flight")
 
 
-def parts():
-    if is_in_flight():
-        av = krpcConnection.space_center.active_vessel
-        root = av.parts.root
-        stack = [(root, 1)]
-        while stack:
-            part, depth = stack.pop()
-            ksp_log("{}{}{} - {}".format('|' * (depth - 1), '\\' * (depth > 1), part.tag, part.title))
-            for child in part.children:
-                stack.append((child, depth + 1))
-    else:
-        ksp_log("not in flight")
+# def parts():
+#     if web_is_in_flight():
+#         av = krpcConnection.space_center.active_vessel
+#         root = av.parts.root
+#         stack = [(root, 1)]
+#         while stack:
+#             part, depth = stack.pop()
+#             __ksp_log("{}{}{} - {}".format('|' * (depth - 1), '\\' * (depth > 1), part.tag, part.title))
+#             for child in part.children:
+#                 stack.append((child, depth + 1))
+#     else:
+#         __ksp_log("not in flight")
 
 
 def hint():
-    if is_in_flight():
+    if web_is_in_flight():
         av = krpcConnection.space_center.active_vessel
         prevhl = None
         while True:
@@ -191,13 +353,13 @@ def hint():
                 if part.highlighted and prevhl != part:
                     prevhl = part
                     for module in part.modules:
-                        ksp_log(" m> {} {}".format(module.name, module.actions))
+                        __ksp_log(" m> {} {}".format(module.name, module.actions))
     else:
-        ksp_log("not in flight")
+        __ksp_log("not in flight")
 
 
 def get_target_dir():
-    if not is_in_flight():
+    if not web_is_in_flight():
         return "Not in flight"
     av = krpcConnection.space_center.active_vessel
     if not av:

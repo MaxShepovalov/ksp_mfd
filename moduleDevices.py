@@ -209,13 +209,9 @@ def process_click(memory, x, y):
 
 
 def refresh(memory):
+    kspConnect.queue_agent_scan_requests(memory, 'moduleDevices')
     if memory["moduleDevices"]['state'] == 'fetch':
-        memory["moduleDevices"]['data'], memory['log_message'] = get_krpc_data(memory)
-        if memory["moduleDevices"]['data'] is not None:
-            memory["moduleDevices"]['state'] = 'recompute'
-            update_filters_values(memory)
-        else:
-            memory["moduleDevices"]['state'] = 'idle'
+        get_krpc_data(memory)
     elif memory["moduleDevices"]['state'] == 'recompute':
         # convert data to view
         update_list(memory)
@@ -391,8 +387,27 @@ def update_viewable_part(memory, path='', use_char=''):
 # local MOCK {'name': 'root', 'type': 'pod', 'expanded': False, 'nodes': []}
 def get_krpc_data(memory):
     if memory['kspConnected'] is True:
-        memory['moduleDevices']['filters'] = kspConnect.get_part_filters()
-        memory['moduleDevices']['updateFilters'] = True
-        return kspConnect.get_part_list(memory['moduleDevices']['selectedFilter'])
+        kspConnect.queue_agent_add_action(
+            'moduleDevices',
+            kspConnect.queue_add_request(kspConnect.web_get_part_filters),
+            handler_get_filters
+        )
+        kspConnect.queue_agent_add_action(
+            'moduleDevices',
+            kspConnect.queue_add_request(kspConnect.web_get_part_list, {'filter': memory['moduleDevices']['selectedFilter']}),
+            handler_get_parts
+        )
+
+
+def handler_get_filters(memory, data):
+    memory['moduleDevices']['filters'] = data
+    memory['moduleDevices']['updateFilters'] = True
+
+
+def handler_get_parts(memory, data):
+    memory["moduleDevices"]['data'], memory['log_message'] = data
+    if memory["moduleDevices"]['data'] is not None:
+        memory["moduleDevices"]['state'] = 'recompute'
+        update_filters_values(memory)
     else:
-        return None, "KRPC is not connected"
+        memory["moduleDevices"]['state'] = 'idle'

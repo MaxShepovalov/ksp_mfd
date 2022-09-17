@@ -52,20 +52,38 @@ def process_click(memory, x, y):
                 memory['activeModule'] = 'moduleInputIP'
                 memory['initModule'] = 'moduleInputIP'
             elif pressed_button.special == "connect":
+                memory["log_message"] = "Connecting to {}".format(memory['kspIp'])
                 if kspConnect.is_connected():
-                    kspConnect.drop(kspConnect.krpcConnection)
-                c = kspConnect.connect(memory['kspIp'])
-                if c is not None:
-                    memory["kspConnected"] = True
-                    memory["log_message"] = "Connected"
-                    not_a_button = kspButtons.find_button_by_special(buttons_array, "statusMessage")
-                    not_a_button.value = connect_status_message[memory['kspConnected']]
+                    kspConnect.queue_agent_add_action(
+                        'moduleSettings',
+                        kspConnect.queue_add_request(kspConnect.web_drop, {'conn': kspConnect.krpcConnection}),
+                        handler_connection_lost)
+                kspConnect.queue_agent_add_action(
+                    'moduleSettings',
+                    kspConnect.queue_add_request(kspConnect.web_connect, {'kspIp': memory['kspIp']}),
+                    handler_connection_acquired)
             return True
     return False
 
 
+def handler_connection_lost(memory, result):
+    memory["kspConnected"] = False
+    memory["log_message"] = "Disconnected"
+    not_a_button = kspButtons.find_button_by_special(buttons_array, "statusMessage")
+    if not_a_button is not None:
+        not_a_button.value = connect_status_message[memory['kspConnected']]
+
+
+def handler_connection_acquired(memory, result):
+    memory["kspConnected"] = True
+    memory["log_message"] = "Connected"
+    not_a_button = kspButtons.find_button_by_special(buttons_array, "statusMessage")
+    if not_a_button is not None:
+        not_a_button.value = connect_status_message[memory['kspConnected']]
+
+
 def refresh(memory):
-    pass
+    kspConnect.queue_agent_scan_requests(memory, 'moduleSettings')
 
 
 def destroy_module(memory):

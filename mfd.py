@@ -46,6 +46,8 @@ def start(is_full_screen):
         screen = pygame.display.set_mode((memory['screenX'], memory['screenY']))
     kspConnect.log_enabled = memory["log_enabled"]
 
+    kspConnect.start_thread()
+
     while memory['appState'] == "run":
         # check events
         for event in pygame.event.get():
@@ -84,10 +86,13 @@ def start(is_full_screen):
         pygame.display.flip()
         pygame.time.wait(100)
     # finish
+
+    kspConnect.stop_thread()
+
     for module in modules:
         modules[module].destroy_module(memory)
     if kspConnect.is_connected():
-        kspConnect.drop(kspConnect.krpcConnection)
+        kspConnect.web_drop(kspConnect.krpcConnection)
     pygame.quit()
 
 
