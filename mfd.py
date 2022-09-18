@@ -1,6 +1,8 @@
 import json
 import os.path
 import sys
+import traceback
+
 import pygame
 import appSelect
 import moduleSettings
@@ -48,45 +50,48 @@ def start(is_full_screen):
 
     kspConnect.start_thread()
 
-    while memory['appState'] == "run":
-        # check events
-        for event in pygame.event.get():
-            if event.type in [pygame.QUIT]:
-                memory['appState'] = "exit"
-            if event.type in [pygame.FINGERDOWN, pygame.MOUSEBUTTONDOWN]:
-                x, y = get_touch_coordinates(event)
-                found_app_select = appSelect.process_click(memory, x, y)
-                if not found_app_select and check_module_available('activeModule'):
-                    modules[memory['activeModule']].process_click(memory, x, y)
+    try:
+        while memory['appState'] == "run":
+            # check events
+            for event in pygame.event.get():
+                if event.type in [pygame.QUIT]:
+                    memory['appState'] = "exit"
+                if event.type in [pygame.FINGERDOWN, pygame.MOUSEBUTTONDOWN]:
+                    x, y = get_touch_coordinates(event)
+                    found_app_select = appSelect.process_click(memory, x, y)
+                    if not found_app_select and check_module_available('activeModule'):
+                        modules[memory['activeModule']].process_click(memory, x, y)
 
-        # clear old elements first
-        if check_module_available('destroyModule'):
-            modules[memory['destroyModule']].destroy_module(memory)
-            memory['destroyModule'] = None
+            # clear old elements first
+            if check_module_available('destroyModule'):
+                modules[memory['destroyModule']].destroy_module(memory)
+                memory['destroyModule'] = None
 
-        # init new elements
-        if check_module_available('initModule'):
-            modules[memory['initModule']].init_module(memory)
-            memory['initModule'] = None
+            # init new elements
+            if check_module_available('initModule'):
+                modules[memory['initModule']].init_module(memory)
+                memory['initModule'] = None
 
-        # refresh
-        appSelect.refresh(memory)
-        if check_module_available('activeModule'):
-            modules[memory['activeModule']].refresh(memory)
-        kspMessage.refresh(memory)
+            # refresh
+            appSelect.refresh(memory)
+            if check_module_available('activeModule'):
+                modules[memory['activeModule']].refresh(memory)
+            kspMessage.refresh(memory)
 
-        # redraw screen
-        screen.fill(0)
-        appSelect.draw(memory, screen)
-        if check_module_available('activeModule'):
-            modules[memory['activeModule']].draw(memory, screen)
-        kspMessage.draw(memory, screen)
+            # redraw screen
+            screen.fill(0)
+            appSelect.draw(memory, screen)
+            if check_module_available('activeModule'):
+                modules[memory['activeModule']].draw(memory, screen)
+            kspMessage.draw(memory, screen)
 
-        # flip screen buffer
-        pygame.display.flip()
-        pygame.time.wait(100)
+            # flip screen buffer
+            pygame.display.flip()
+            pygame.time.wait(100)
+    except Exception as e:
+        print(traceback.format_exc())
+
     # finish
-
     kspConnect.stop_thread()
 
     for module in modules:

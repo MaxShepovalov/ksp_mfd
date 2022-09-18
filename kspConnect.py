@@ -100,6 +100,10 @@ def __call_method(method, data):
         result = web_is_targeting_port()
     elif method is web_is_targeting:
         result = web_is_targeting()
+    elif method is web_get_part_modules:
+        result = __call_method_one_param(web_get_part_modules, data, 'part', "web_get_part_modules expects part")
+    elif method is web_get_module_actions:
+        result = __call_method_one_param(web_get_module_actions, data, 'module', "web_get_module_actions expects part")
     elif method is web_get_part_list:
         if data is None:
             result = web_get_part_list(filter=None)
@@ -145,6 +149,7 @@ def queue_agent_scan_requests(memory, agent):
         if len(request_agents[agent]) == 0:
             del request_agents[agent]
 
+
 # start end connection
 
 
@@ -160,6 +165,7 @@ def __stop_loop_async():
     global thread_active
     thread_active = False
     return 'stopped'
+
 
 def stop_thread():
     __stop_loop_async()
@@ -274,6 +280,48 @@ def web_get_part_filters():
             if method[0] != "_" and isinstance(eval("av.parts.{}".format(method)), list):
                 filters.append(method)
     return filters
+
+
+def web_get_part_modules(part):
+    # {'name': str, 'type': str, 'expanded': False, 'part': part, 'nodes': []}
+    part_data = part_to_data(part, recurse=False)
+    part_data['expanded'] = True
+    part_data['part'] = None
+    for module in part.modules:
+        part_data['nodes'].append({
+            'name': str(module.name),
+            'type': '',
+            'expanded': False,
+            'part': module,
+            'nodes': []
+        })
+    return [part_data]
+
+
+def web_get_module_actions(module):
+    module_data = {'name': str(module.name), 'type': '', 'expanded': True, 'part': None,
+                   'nodes': [
+                       {'name': 'actions', 'type': 'no actions', 'expanded': True, 'part': None, 'nodes': []},
+                       {'name': 'events', 'type': 'no events', 'expanded': False, 'part': None, 'nodes': []},
+                       {'name': 'fields', 'type': 'no fields', 'expanded': False, 'part': None, 'nodes': []}
+                   ]
+                   }
+    for action in module.actions:
+        module_data['nodes'][0]['type'] = ''
+        module_data['nodes'][0]['nodes'].append({
+            'name': str(action), 'type': '', 'expanded': False, 'part': action, 'nodes': []
+        })
+    for event in module.events:
+        module_data['nodes'][1]['type'] = ''
+        module_data['nodes'][1]['nodes'].append({
+            'name': str(event), 'type': '', 'expanded': False, 'part': event, 'nodes': []
+        })
+    for field in module.fields:
+        module_data['nodes'][2]['type'] = ''
+        module_data['nodes'][2]['nodes'].append({
+            'name': str(field), 'type': str(module.fields[field]), 'expanded': False, 'part': None, 'nodes': []
+        })
+    return [module_data]
 
 
 # math hints
